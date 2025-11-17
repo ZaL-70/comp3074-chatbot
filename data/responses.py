@@ -1,4 +1,10 @@
 INTENT_RESPONSES = {
+    "greeting": [
+        "Hello there! What’s your name?",
+        "Hi! Nice to meet you. What should I call you?",
+        "Hello there!",
+        "Hey! How’s your day going?",
+    ],
     "capabilities": [
         "I can remember your name, have a short chat and help you with 'transaction'."
     ],
@@ -8,12 +14,6 @@ INTENT_RESPONSES = {
 }
 
 SMALL_TALK_RESPONSES = {
-    "greetings": [
-        "Hello there! What’s your name?",
-        "Hi! Nice to meet you. What should I call you?",
-        "Hello there!",
-        "Hey! How’s your day going?",
-    ],
     "weather": [
         "I hope it’s sunny where you are!",
         "It’s always perfect weather in cyberspace.",

@@ -1,17 +1,25 @@
-from utils.TextMatcher import TextMatcher
-from data.intent_training import INTENTS_TRAINING
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
 
 """Intent match prompt by training on
  pre-anticipated queries (labelled by intent)"""
-class IntentMatcher(TextMatcher):
+# NoteL Add obvious phrase checks (improved classification accuracy)
+# Evaluate separately
+class IntentClassifier:
+    def __init__(self, df):
 
-    def __init__(self):
-        super().__init__(INTENTS_TRAINING, use_stopwords=False)
+        self.model = Pipeline([
+            ('tfidf', TfidfVectorizer(analyzer='char', ngram_range=(3,5))),
+            ('clf', LinearSVC())
+        ])
 
-    def predict_intent(self, user_input: str):
-        intent = self.find_category(user_input, metric="euclidean", threshold=0.5)
+        self.scores = cross_val_score(self.model, df['text'], df['intent'], cv=5)
 
-        if intent is None:
-            return "unknown"
+        self.model.fit(df['text'], df['intent'])
 
-        return intent
+    def predict(self, user_input):
+        print("Accuracy scores:", self.scores)
+        print("Mean accuracy:", self.scores.mean())
+        return self.model.predict([user_input])[0]

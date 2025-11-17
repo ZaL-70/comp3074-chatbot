@@ -9,12 +9,12 @@ nltk.download('stopwords', quiet=True)
 
 """Utility class for low-level, general, 
 query-doc matching using TF-IDF"""
-class Utils:
+class TfIdfMatcher:
 
     def __init__(self, use_stopwords: bool = True):
         # Prepare TD-IDF
         if use_stopwords:
-            self.count_vect = CountVectorizer(stop_words=stopwords.words('english'))
+            self.count_vect = CountVectorizer(stop_words=stopwords.words('english'), lowercase=True)
         else:
             self.count_vect = CountVectorizer(lowercase=True)
 
@@ -45,7 +45,7 @@ class Utils:
         # Get the top match
         best_idx = np.argmax(sims)
         best_score = sims[best_idx]
-        print(metric, " ", best_score)
+        print(best_score)
 
         if best_score < threshold:
             return None

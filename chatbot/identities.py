@@ -13,32 +13,53 @@ class IdentityManager:
         # Keywords that often precede a name
         self.name = None
         self.intro_keywords = [
-            "name", "call", "i'm", "im", "i am", "this is", "its", "it's"
+            "name is", "names", "call me", "i'm", "im", "i am", "this is", "its", "it's"
         ]
 
-    # Lab 0: Text processing with pos tags inspired
+    def contains_intro_phrase(self, text_lower):
+        tokens = text_lower.split()
+
+        for phrase in self.intro_keywords:
+            phrase_tokens = phrase.split()
+            # sliding window over tokens
+            for i in range(len(tokens) - len(phrase_tokens) + 1):
+                if tokens[i:i + len(phrase_tokens)] == phrase_tokens:
+                    return phrase
+
+        return None
+
+    # Lab 0 - text processing with pos tags inspired
     def extract_name(self, text: str):
         text_lower = text.lower()
 
-        # Check sentence talks about a name or identity
-        if not any(k in text_lower for k in self.intro_keywords):
+        # Check sentence uses self intro words
+        phrase = self.contains_intro_phrase(text_lower)
+        if not phrase:
             return None
 
-        # Tokenize & POS-tag sentence
+        # Tokenize & pos tag sentence
         tokens = word_tokenize(text)
         tagged = pos_tag(tokens)
 
         # Try to find proper nouns (NNP tags)
-        candidates = [word for word, tag in tagged if tag == "NNP"]
+        proper_nouns = [word for word, tag in tagged if tag == "NNP"]
 
-        if not candidates:
+        if proper_nouns:
+            name = " ".join(proper_nouns).title()
+            self.name = name
+            return name
+
+        # Else fallback to potential names (in lowercase) preceding intro words
+        after = text_lower.split(phrase, 1)[1].strip()
+        if not after or len(after.split()) == 0:
             return None
 
-        # Combine consecutive proper nouns
-        name = " ".join(candidates)
+        candidate = after.split()[0]
+        candidate = "".join(c for c in candidate if c.isalpha())
 
-        if name:
-            self.name = name.strip().title()
-            return name.strip().title()
-        else:
-            return None
+        if candidate:
+            name = candidate.title()
+            self.name = name
+            return name
+
+        return None

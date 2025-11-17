@@ -1,0 +1,133 @@
+text,intent,sub_intent
+"hello",greeting
+"hi there",greeting
+"hey",greeting
+"good morning",greeting
+"good evening",greeting
+"yo",greeting
+"hey bot",greeting
+"hi bot",greeting
+"hiya",greeting
+"hello chefbot",greeting
+"hey assistant",greeting
+"good day",greeting
+"hi friend",greeting
+"how are you",small_talk,mood
+"how’s it going",small_talk,mood
+"sup",small_talk,mood
+"what’s up",small_talk,mood
+"are you okay",small_talk,mood
+"how do you feel",small_talk,mood
+"hows your day going",small_talk,mood
+"you good",small_talk,mood
+"how are things",small_talk,mood
+"how have you been",small_talk,mood
+"are you doing well",small_talk,mood
+"how's the weather",small_talk,weather
+"thanks",small_talk,thanks
+"thank you",small_talk,thanks
+"what is my name",ask_name
+"do you know my name",ask_name
+"tell me my name",ask_name
+"can you tell me my name",ask_name
+"whats my name",ask_name
+"do you remember my name",ask_name
+"what can you do",capabilities
+"what are your abilities",capabilities
+"how can you help me",capabilities
+"what are you able to do",capabilities
+"what can you help me with",capabilities
+"how do you work",capabilities
+"explain your functions",capabilities
+"what tasks can you do",capabilities
+"how do you assist users",capabilities
+"find me a recipe",recipe_search
+"find me a pasta recipe",recipe_search
+"show me a recipe",recipe_search
+"i want a recipe",recipe_search
+"give me a recipe",recipe_search
+"suggest a recipe",recipe_search
+"i want to cook something",recipe_search
+"help me find a recipe",recipe_search
+"find a meal for me",recipe_search
+"show me something i can cook",recipe_search
+"give me a cooking idea",recipe_search
+"i want a vegetarian dinner",recipe_filter_search
+"show me a vegan meal",recipe_filter_search
+"find me a healthy dinner",recipe_filter_search
+"give me a vegetarian dish",recipe_filter_search
+"recommend a vegan dish",recipe_filter_search
+"suggest a vegetarian recipe",recipe_filter_search
+"i need a low calorie meal",recipe_filter_search
+"show me vegetarian options",recipe_filter_search
+"i want gluten free dinner",recipe_filter_search
+"find a dairy free recipe",recipe_filter_search
+"do you know a keto meal",recipe_filter_search
+"healthy recipe please",recipe_filter_search
+"show me high protein meals",recipe_filter_search
+"i have chicken and rice",recipe_filter_search
+"what can i cook with chicken",recipe_filter_search
+"what can i make with rice",recipe_search_by_filters
+"i only have eggs and cheese",recipe_filter_search
+"i have tomatoes what can i make",recipe_filter_search
+"i have pasta and vegetables",recipe_filter_search
+"ingredients: chicken rice",recipe_filter_search
+"here are my ingredients chicken peppers onions",recipe_filter_search
+"what dish can i make with potatoes",recipe_filter_search
+"i have beef",recipe_filter_search
+"what can i cook with beef",recipe_filter_search
+"beef recipe ideas",recipe_filter_search
+"what meal can i make using beef",recipe_filter_search
+"i have mince meat what can i cook",recipe_filter_search
+"i have only noodles and chicken",recipe_filter_search
+"i need a recipe with eggs",recipe_filter_search
+"recipe ideas with vegetables",recipe_filter_search
+"i have salmon what can i cook",recipe_filter_search
+"what can i make with bread",recipe_filter_search
+"i have flour sugar and eggs",recipe_filter_search
+"i have mushrooms",recipe_filter_search
+"i have leftover rice",recipe_filter_search
+"i’ve got cheese and tomatoes",recipe_filter_search
+"what food can i create with pasta",recipe_filter_search
+"how do i make pancakes",recipe_steps
+"show me how to cook pasta",recipe_steps
+"how to prepare chicken curry",recipe_steps
+"guide me through making pizza",recipe_steps
+"teach me how to cook this",recipe_steps
+"i want to cook step by step",recipe_steps
+"walk me through this recipe",recipe_steps
+"help me cook this meal",recipe_steps
+"how do i cook this dish",recipe_steps
+"give me the cooking steps",recipe_steps
+"start recipe instructions",recipe_steps
+"show me step by step cooking",recipe_steps
+"begin cooking instructions",recipe_steps
+"save this recipe",recipe_save
+"save it",recipe_save
+"add this to my recipes",recipe_save
+"remember this recipe",recipe_save
+"store this recipe",recipe_save
+"keep this recipe for me",recipe_save
+"save that one",recipe_save
+"add to my saved meals",recipe_save
+"save this meal",recipe_save
+"what are my saved recipes",recipe_recall
+"show me my saved recipes",recipe_recall
+"open my saved recipes",recipe_recall
+"what did i save",recipe_recall
+"show saved recipes",recipe_recall
+"which recipes did i save",recipe_recall
+"what recipes have i saved",recipe_recall
+"show me meals i saved",recipe_recall
+"what are stocks and bonds",qa
+"explain glacier caves",qa
+"how do pumps work",qa
+"explain african immigration to the us",qa
+"i have a question about science",qa
+"can you answer a factual question",qa
+"how much debt does the uk have",qa
+"tell me about a topic",qa
+"how a car motor works",qa
+"i want to ask a knowledge question",qa
+"can you answer a general question",qa
+"explain a concept to me",qa

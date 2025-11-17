@@ -1,4 +1,4 @@
-from utils.utilities import Utils
+from utils.TfIdfMatcher import TfIdfMatcher
 
 """Base class for high-level text matcher classes using TF-IDF"""
 class TextMatcher:
@@ -7,7 +7,7 @@ class TextMatcher:
         self.texts = None
         self.labels = None
         self.vectors = None
-        self.utils = Utils(use_stopwords=use_stopwords)
+        self.tfidf_matcher = TfIdfMatcher(use_stopwords=use_stopwords)
 
         # Anticipated queries
         self.training_data = training_data
@@ -25,13 +25,13 @@ class TextMatcher:
                 labels.append(category)
 
         # Vectorize documents
-        self.vectors = self.utils.vectorise(texts)
+        self.vectors = self.tfidf_matcher.vectorise(texts)
         self.texts = texts
         self.labels = labels
 
     """Find the best matching category for a query (e.g. intent, 
      small talk)"""
-    def find_category(self, query: str, metric="cosine", threshold: float = 0.7):
+    def predict_category(self, query: str, metric="cosine", threshold: float = 0.7):
         query_clean = query.strip().lower()
 
         # Check for exact text match first
@@ -41,7 +41,7 @@ class TextMatcher:
                 return self.labels[idx]
 
         # Otherwise use cosine similarity
-        best_idx = self.utils.find_best_match(query, self.vectors, metric, threshold)
+        best_idx = self.tfidf_matcher.find_best_match(query, self.vectors, metric, threshold)
 
         if best_idx is None:
             return None

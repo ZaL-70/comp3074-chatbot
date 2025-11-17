@@ -1,6 +1,7 @@
 import random
 import pandas as pd
 from chatbot.QAModule import QAModule
+from chatbot.RecipeModule import RecipeModule
 from chatbot.SmalltalkMatcher import SmalltalkMatcher
 from chatbot.identities import *
 from chatbot.IntentMatcher import *
@@ -11,11 +12,13 @@ from data.responses import *
 class Chatbot:
 
     def __init__(self):
-        self.df = pd.read_csv("data/COMP3074-CW1-Dataset.csv")
-        self.intent_model = IntentMatcher()
-        self.qa_module = QAModule(self.df)
+        self.qa_df = pd.read_csv("data/COMP3074-CW1-Dataset.csv")
+        self.intent_df = pd.read_csv("data/intent-training.csv")
+        self.intent_model = IntentClassifier(self.intent_df)
+        self.qa_module = QAModule(self.qa_df)
         self.identity_manager = IdentityManager()
-        self.smalltalk_module = SmalltalkMatcher(self.identity_manager)
+        self.smalltalk_module = SmalltalkMatcher(self.intent_df, self.identity_manager)
+        self.recipes = RecipeModule()
 
     def respond(self, user_input: str):
         # Check name assignment
@@ -26,10 +29,31 @@ class Chatbot:
             return f"Nice to meet you, {name}!"
 
         # Predict intent
-        intent = self.intent_model.predict_intent(user_input)
+        intent = self.intent_model.predict(user_input)
+        print(intent)
 
         # Respond to certain intents with a relevant response
-        if intent == "ask_name":
+        if intent == "recipe_search":
+            return f"Here's a recipe for you: {self.recipes.random_recipe()}"
+        elif intent == "recipe_filter_search":
+            filters = [word.lower() for word in user_input.split()]
+            diet_filters, ingredient_filters = self.recipes.extract_filters(filters)
+            or_query = "or" in user_input.lower()
+            matches = self.recipes.find_recipes(diet_filters, ingredient_filters, or_query)
+            return matches
+        elif intent == "recipe_steps":
+            return self.recipes.start_recipe_steps()
+        elif user_input.lower() == "next":
+            return self.recipes.next_step()
+        elif intent == "recipe_save":
+            return self.recipes.save_recipe("pancakes")
+        elif intent == "recipe_recall":
+            return self.recipes.recall_saved()
+        elif intent == "greeting":
+            if self.identity_manager.name:
+                return f"Hello again, {self.identity_manager.name}!"
+            return random.choice(INTENT_RESPONSES["greeting"])
+        elif intent == "ask_name":
             if self.identity_manager.name:
                 return f"Your name is {self.identity_manager.name}."
             return "I don't know your name yet. What should I call you?"
