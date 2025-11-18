@@ -3,10 +3,11 @@ from data.recipe_data import RECIPES, KNOWN_DIETS
 
 """Manages queries related to transactions (recipes)"""
 # Notes:
-# - Add stemming to ings/diet (flexible input to data match)
-# - Fix recipe start to start queried recipe
-# - Add ability to ask user between multiple/single existing preference before recipe start
-# - Add half-way marker to step-by-step guide (or any extras similar)
+# - Add stemming/lemmatising to ings/diet (flexible input to data match)
+# - Add ability to ask user between multiple/single existing preferences
+#   before recipe starting (confirmations cia context/state track)
+# - Add half-way marker to step-by-step guide or any similar feature
+#   (conversational markers)
 class RecipeModule:
     def __init__(self):
         self.recipes = RECIPES
@@ -14,6 +15,7 @@ class RecipeModule:
         self.user_saved = []
         self.active_recipe = None
         self.preferred_recipe = None
+        self.recipe_preferences = []
         self.step_index = 0
 
     # --- Transactional Functions ---
@@ -25,46 +27,50 @@ class RecipeModule:
 
     # Specific Recipe Search (ingredients and dietary)
     def find_recipes(self, diet_filters=None, ingredient_filters=None, or_query=False):
+        message = "No recipes match those ingredients or diet requirements."
         # Exit early if filters are both empty
         if not (diet_filters or ingredient_filters):
             return "No recipes match those ingredients or diet requirements."
 
         # First check "or" word used
         if or_query:
-            or_matches = [
+            matches = [
                 name for name, recipe in self.recipes.items()
                 if self.match_or(recipe, ingredient_filters, diet_filters, fallback=False)
             ]
             # Standard response ("or" word was specified)
-            return (f"I found these recipes- {', '.join(or_matches)}" or
+            return (f"I found these recipes- {', '.join(matches)}" or
                     "No recipes match those ingredients or diet requirements.")
 
         # Default behaviour: AND logic first (unless "or" word was seen)
-        and_matches = [
-            name for name, recipe in self.recipes.items()
-            if self.match_and(recipe, ingredient_filters, diet_filters)
-        ]
-        if and_matches:
-            return f"I found these recipes- {', '.join(and_matches)}"
+        if not or_query:
+            matches = [
+                name for name, recipe in self.recipes.items()
+                if self.match_and(recipe, ingredient_filters, diet_filters)
+            ]
+            if matches:
+                message = f"I found these recipes- {', '.join(matches)}"
+        else:
+            matches = [
+                name for name, recipe in self.recipes.items()
+                if self.match_or(recipe, ingredient_filters, diet_filters, fallback=True)
+            ]
+            if matches:  # Transparent message in fall back case
+                message = f"I don't think I have that. Here's some potential alternatives- {', '.join(matches)}"
 
-        # (Potential refactor: Before fallback to basic or, check ingredients
-        # & diet filter used -> ingredients did not exist with those diets)
-        # Otherwise fallback to OR logic (if no matches)
-        or_matches = [
-            name for name, recipe in self.recipes.items()
-            if self.match_or(recipe, ingredient_filters, diet_filters, fallback=True)
-        ]
-        if or_matches:  # Transparent message in fall back case
-            return f"I don't think I have that. Here's some potential alternatives- {', '.join(or_matches)}"
-
-        return "No recipes match those ingredients or diet requirements."
+        return message
 
     # Recipe Steps Intent
-    def start_recipe_steps(self):
+    def start_recipe_steps(self, recipe_name=None):
+        if recipe_name:
+            self.preferred_recipe = recipe_name
+        if not self.preferred_recipe:
+            return "I’m not sure which recipe you mean. Could you tell me the name?"
         if self.preferred_recipe not in self.recipes:
             return "I couldn’t find that recipe."
         self.active_recipe = self.preferred_recipe
         self.step_index = 0
+        print("Preferred recipe: ", self.preferred_recipe)
         return f"Let's make {self.active_recipe}! Step 1: {self.recipes[self.active_recipe]['steps'][0]} (type 'next' to continue)"
 
     def next_step(self):
@@ -93,6 +99,15 @@ class RecipeModule:
         return "You’ve saved: " + ", ".join(self.user_saved)
 
     # --- Helper Functions ----
+
+    # Returns the name of a recipe from a query
+    def extract_recipe_name(self, user_input):
+        user_input = user_input.lower()
+        for recipe_name in self.recipes.keys():
+            if recipe_name.lower() in user_input:
+                return recipe_name
+        # Potential addition - look for fewer words part of full recipe name
+        return None
 
     # Checks if every filter word is in a recipe (preferred, default behaviour)
     @staticmethod
@@ -162,6 +177,4 @@ class RecipeModule:
                     ingredient_filters.append(word)
                     break
 
-        print(ingredient_filters)
-        print(diet_filters)
         return diet_filters, ingredient_filters

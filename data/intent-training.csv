@@ -5,8 +5,6 @@ text,intent,sub_intent
 "good morning",greeting
 "good evening",greeting
 "yo",greeting
-"hey bot",greeting
-"hi bot",greeting
 "hiya",greeting
 "hello chefbot",greeting
 "hey assistant",greeting
@@ -28,10 +26,14 @@ text,intent,sub_intent
 "thank you",small_talk,thanks
 "what is my name",ask_name
 "do you know my name",ask_name
+"do you know me",ask_name
 "tell me my name",ask_name
 "can you tell me my name",ask_name
 "whats my name",ask_name
 "do you remember my name",ask_name
+"do you remember who i am",ask_name
+"do you remember me", ask_name
+"who am i",ask_name
 "what can you do",capabilities
 "what are your abilities",capabilities
 "how can you help me",capabilities
@@ -41,6 +43,7 @@ text,intent,sub_intent
 "explain your functions",capabilities
 "what tasks can you do",capabilities
 "how do you assist users",capabilities
+"i need help",capabilities
 "find me a recipe",recipe_search
 "find me a pasta recipe",recipe_search
 "show me a recipe",recipe_search
@@ -67,7 +70,7 @@ text,intent,sub_intent
 "show me high protein meals",recipe_filter_search
 "i have chicken and rice",recipe_filter_search
 "what can i cook with chicken",recipe_filter_search
-"what can i make with rice",recipe_search_by_filters
+"what can i make with rice",recipe_filter_search
 "i only have eggs and cheese",recipe_filter_search
 "i have tomatoes what can i make",recipe_filter_search
 "i have pasta and vegetables",recipe_filter_search
@@ -90,6 +93,7 @@ text,intent,sub_intent
 "i’ve got cheese and tomatoes",recipe_filter_search
 "what food can i create with pasta",recipe_filter_search
 "how do i make pancakes",recipe_steps
+"what are the instructions for that",recipe_steps
 "show me how to cook pasta",recipe_steps
 "how to prepare chicken curry",recipe_steps
 "guide me through making pizza",recipe_steps

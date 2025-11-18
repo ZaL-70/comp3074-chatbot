@@ -42,7 +42,9 @@ class Chatbot:
             matches = self.recipes.find_recipes(diet_filters, ingredient_filters, or_query)
             return matches
         elif intent == "recipe_steps":
-            return self.recipes.start_recipe_steps()
+            recipe_name = self.recipes.extract_recipe_name(user_input)
+            print("Recipe input:", recipe_name)
+            return self.recipes.start_recipe_steps(recipe_name)
         elif user_input.lower() == "next":
             return self.recipes.next_step()
         elif intent == "recipe_save":
