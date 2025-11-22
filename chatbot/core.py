@@ -42,10 +42,10 @@ class Chatbot:
         if self.recipes.state == RecipeState.SEARCHING:
             if user_input.lower() == "yes" and len(self.recipes.search_matches) == 1:
                 return self.recipes.start_recipe_steps(self.recipes.search_matches[0])
-            if user_input.lower() == "yes" and len(self.recipes.search_matches) > 1:
+            elif user_input.lower() == "yes" and len(self.recipes.search_matches) > 1:
                 self.recipes.state = RecipeState.RECIPE_CONFIRMING
                 return "Great! Which one do you want the steps for?" # Add new function
-            if user_input.lower() == "no":
+            else:
                 return "No worries. Is there anything else I can assist with"
         if self.recipes.state == RecipeState.STEPS_FINISH:
             if user_input.lower() == "yes" and len(self.recipes.search_matches) == 1:
@@ -57,9 +57,14 @@ class Chatbot:
             if user_input.lower() in self.recipes.search_matches:
                 return self.recipes.start_recipe_steps(user_input)
         if self.user_state == UserState.NAME_ASKING and intent == "UNKNOWN":
-            self.identity_manager.user_name = user_input.title()
-            self.user_state = UserState.DEFAULT # Reset state after use
-            return f"Nice to meet you, {self.identity_manager.user_name}!"
+            if self.identity_manager.looks_like_name(user_input):
+                self.identity_manager.user_name = user_input.title()
+                self.user_state = UserState.DEFAULT
+                return f"Nice to meet you, {self.identity_manager.user_name}!"
+            else:
+                self.identity_manager.user_name = "Friend"
+                self.user_state = UserState.DEFAULT
+                return "Okay, I'll just call you friend for now."
 
         # Respond to certain intents with a relevant response
         if intent == "recipe_steps":

@@ -15,7 +15,7 @@ class RecipeState(Enum):
 # - Add stemming/lemmatising to ings/diet (flexible input to data match)
 # - Add half-way marker to step-by-step guide or any similar features
 #   (conversational markers)
-# - Improve context tracking (on steps)
+# - Add context tracking on steps (how many left, start, end etc)
 class RecipeModule:
     def __init__(self):
         self.recipes = RECIPES
@@ -156,10 +156,10 @@ class RecipeModule:
     def resolve_recipe(self, recipe_name=None):
         self.preferred_recipe = recipe_name
         if recipe_name == "UNKNOWN_RECIPE":
-            return None, "I don't recognise that recipe. Could you tell me the exact user_name?"
+            return None, "I don't recognise that recipe. Could you tell me the exact name?"
 
         if (not self.preferred_recipe) or (recipe_name == "NO_TARGET_REF"):
-            return None, "I’m not sure which recipe you mean. Could you tell me the user_name?"
+            return None, "I’m not sure which recipe you mean. Could you tell me the name?"
 
         if self.preferred_recipe not in self.recipes:
             return None, f"I couldn’t find the recipe '{self.preferred_recipe}'"

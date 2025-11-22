@@ -23,8 +23,7 @@ text,intent,sub_intent
 "how are you",small_talk,mood
 "hows it going",small_talk,mood
 "how are things",small_talk,mood
-"you good?",small_talk,mood
-"how have you been",small_talk,mood
+"you good",small_talk,mood
 "are you doing okay",small_talk,mood
 "hows your day",small_talk,mood
 "everything alright",small_talk,mood
@@ -33,34 +32,16 @@ text,intent,sub_intent
 "sup",small_talk,mood
 "whats up",small_talk,mood
 "are you okay",small_talk,mood
-"hows your morning going",small_talk,mood
 "hows life",small_talk,mood
-"hows your night going",small_talk,mood
-"you doing good today",small_talk,mood
-"how’s your vibe today",small_talk,mood
-"what’s your mood like",small_talk,mood
-"how you holding up",small_talk,mood
 
 "hows the weather",small_talk,weather
 "whats the weather like",small_talk,weather
-"what’s the temperature like",small_talk,weather
-"is it sunny today",small_talk,weather
-"is it raining right now",small_talk,weather
 "tell me the weather",small_talk,weather
 "how’s the weather over there",small_talk,weather
 "what’s the forecast today",small_talk,weather
-"is it cold today",small_talk,weather
-"do you know today’s weather",small_talk,weather
-"what’s the climate like today",small_talk,weather
-"is it hot outside",small_talk,weather
-"whats the sky like",small_talk,weather
-"is it snowing there",small_talk,weather
-"how’s outside looking",small_talk,weather
+"do you know todays weather",small_talk,weather
 "update me on the weather",small_talk,weather
-"is there a storm coming",small_talk,weather
-"do I need a jacket today",small_talk,weather
 "whats the weather report",small_talk,weather
-"tell me if it's warm today",small_talk,weather
 
 "thanks",small_talk,thanks
 "thank you",small_talk,thanks
@@ -70,17 +51,12 @@ text,intent,sub_intent
 "thanks for the help",small_talk,thanks
 "cheers",small_talk,thanks
 "thanks buddy",small_talk,thanks
-"thanks friend",small_talk,thanks
 "many thanks",small_talk,thanks
 "thank you again",small_talk,thanks
-"im grateful",small_talk,thanks
 "that helps thanks",small_talk,thanks
 "thanks for that",small_talk,thanks
 "thank you so much",small_talk,thanks
-"i appreciate your help",small_talk,thanks
-"thanks for assisting",small_talk,thanks
-"thanks pal",small_talk,thanks
-"i owe you one",small_talk,thanks
+"appreciate your help",small_talk,thanks
 
 "what is my name",ask_user_name,
 "do you know my name",ask_user_name,
@@ -143,7 +119,6 @@ text,intent,sub_intent
 "show me what you can do",capabilities,
 "tell me your functions",capabilities,
 "how do you operate",capabilities,
-"explain what you’re good at",capabilities,
 
 "find me a recipe",recipe_search,
 "what can I eat today",recipe_search,
@@ -197,6 +172,9 @@ text,intent,sub_intent
 "teach me how to cook this",recipe_steps,
 "walk me through this recipe",recipe_steps,
 "help me cook this meal",recipe_steps,
+"help me prepare fish",recipe_steps,
+"help me with the steps for that",recipe_steps,
+"help me on the instructions for that",recipe_steps,
 "start cooking instructions",recipe_steps,
 "give me the cooking steps",recipe_steps,
 "begin recipe instructions",recipe_steps,

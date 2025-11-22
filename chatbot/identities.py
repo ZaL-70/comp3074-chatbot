@@ -1,3 +1,5 @@
+import re
+
 import nltk
 from nltk import word_tokenize, pos_tag
 
@@ -72,3 +74,36 @@ class IdentityManager:
             return self.user_name
 
         return None
+
+    NON_NAME_RESPONSES = {
+        "dont", "do", "not", "know", "i dont know", "idk",
+        "no", "maybe", "later", "nothing", "none", "no idea",
+        "whatever", "anything", "something", "meh", "fine",
+        "you", "choose", "your", "choice", "up", "to",
+        "not sure", "unsure"
+    }
+
+    def looks_like_name(self, text: str):
+        # Reject long phrases
+        words = text.strip().lower().split()
+        if len(words) == 0 or len(words) > 4:
+            return False
+
+        # Reject any phrase in the NON_NAME_RESPONSES list
+        if text in self.NON_NAME_RESPONSES:
+            return False
+
+        # Reject any word that is in NON_NAME_RESPONSES
+        if any(w in self.NON_NAME_RESPONSES for w in words):
+            return False
+
+        # Reject punctuation (except apostrophes)
+        if re.search(r"[^a-zA-Z\s']", text):
+            return False
+
+        # If all words alphabetic-like, consider it a name
+        for w in words:
+            if not re.match(r"^[A-Za-z']+$", w):
+                return False
+
+        return True
