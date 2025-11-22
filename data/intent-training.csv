@@ -1,17 +1,18 @@
 text,intent,sub_intent
+"hi",greeting
 "hello",greeting
+"hello there",greeting
 "hi there",greeting
 "hey",greeting
 "good morning",greeting
 "good evening",greeting
+"good afternoon",greeting
 "yo",greeting
 "hiya",greeting
-"hello chefbot",greeting
-"hey assistant",greeting
 "good day",greeting
 "hi friend",greeting
 "how are you",small_talk,mood
-"how’s it going",small_talk,mood
+"hows it going",small_talk,mood
 "sup",small_talk,mood
 "what’s up",small_talk,mood
 "are you okay",small_talk,mood
@@ -21,20 +22,59 @@ text,intent,sub_intent
 "how are things",small_talk,mood
 "how have you been",small_talk,mood
 "are you doing well",small_talk,mood
-"how's the weather",small_talk,weather
+"hows the weather",small_talk,weather
+"whats the weather like",small_talk,weather
 "thanks",small_talk,thanks
 "thank you",small_talk,thanks
-"what is my name",ask_name
-"do you know my name",ask_name
-"do you know me",ask_name
-"tell me my name",ask_name
-"can you tell me my name",ask_name
-"whats my name",ask_name
-"do you remember my name",ask_name
-"do you remember who i am",ask_name
-"do you remember me", ask_name
-"who am i",ask_name
+"what is my name",ask_user_name
+"do you know my name",ask_user_name
+"do you know me",ask_user_name
+"tell me my name",ask_user_name
+"can you tell me my name",ask_user_name
+"what’s my name",ask_user_name
+"do you remember my name",ask_user_name
+"do you remember who I am",ask_user_name
+"do you remember me",ask_user_name
+"who am I",ask_user_name
+"you should know my name, right",ask_user_name
+"can you remember what I’m called",ask_user_name
+"tell me who I am again",ask_user_name
+"what did I tell you my name was?",ask_user_name
+"do you know who I am supposed to be?",ask_user_name
+"remind me what my name is",ask_user_name
+"can you recall my name for me",ask_user_name
+"identify me",ask_user_name
+"what do you think my name is",ask_user_name
+"do I have a name in your memory",ask_user_name
+"say my name",ask_user_name
+"what name do you have for me",ask_user_name
+"what is your name",ask_bot_name
+"what is your name again",ask_bot_name
+"do you have a name",ask_bot_name
+"who are you",ask_bot_name
+"who is this",ask_bot_name
+"can you tell me your name",ask_bot_name
+"remind me your name",ask_bot_name
+"can you remind me what your name is",ask_bot_name
+"I forgot your name",ask_bot_name
+"I forgot who you are again",ask_bot_name
+"what should I call you",ask_bot_name
+"do you go by a name",ask_bot_name
+"how do I address you",ask_bot_name
+"tell me what you’re called",ask_bot_name
+"remind me who you are",ask_bot_name
+"who am I speaking to",ask_bot_name
+"whos talking to me right now",ask_bot_name
+"what name do you use",ask_bot_name
+"I forgot what to call you",ask_bot_name
+"do you have a proper name",ask_bot_name
+"what can I refer to you as",ask_bot_name
+"can you introduce yourself",ask_bot_name
+"say your name",ask_bot_name
+"what do you like to be called?",ask_bot_name
 "what can you do",capabilities
+"what do you do",capabilities
+"what is your purpose",capabilities
 "what are your abilities",capabilities
 "how can you help me",capabilities
 "what are you able to do",capabilities
@@ -44,17 +84,24 @@ text,intent,sub_intent
 "what tasks can you do",capabilities
 "how do you assist users",capabilities
 "i need help",capabilities
+"help me out",capabilities
 "find me a recipe",recipe_search
-"find me a pasta recipe",recipe_search
+"i dont know what to eat",recipe_search
+"what can i eat today",recipe_search
+"im not sure what to cook today",recipe_search
 "show me a recipe",recipe_search
 "i want a recipe",recipe_search
 "give me a recipe",recipe_search
 "suggest a recipe",recipe_search
 "i want to cook something",recipe_search
-"help me find a recipe",recipe_search
+"i want something to cook",recipe_search
 "find a meal for me",recipe_search
+"what can i cook today",recipe_search
+"what should i make today",recipe_search
 "show me something i can cook",recipe_search
 "give me a cooking idea",recipe_search
+"give me some meal ideas",recipe_search
+"give me some recipe ideas",recipe_search
 "i want a vegetarian dinner",recipe_filter_search
 "show me a vegan meal",recipe_filter_search
 "find me a healthy dinner",recipe_filter_search
@@ -66,7 +113,6 @@ text,intent,sub_intent
 "i want gluten free dinner",recipe_filter_search
 "find a dairy free recipe",recipe_filter_search
 "do you know a keto meal",recipe_filter_search
-"healthy recipe please",recipe_filter_search
 "show me high protein meals",recipe_filter_search
 "i have chicken and rice",recipe_filter_search
 "what can i cook with chicken",recipe_filter_search
@@ -80,20 +126,24 @@ text,intent,sub_intent
 "i have beef",recipe_filter_search
 "what can i cook with beef",recipe_filter_search
 "beef recipe ideas",recipe_filter_search
+"recipe ideas with lamb",recipe_filter_search
+"recipe ideas using fish",recipe_filter_search
 "what meal can i make using beef",recipe_filter_search
 "i have mince meat what can i cook",recipe_filter_search
 "i have only noodles and chicken",recipe_filter_search
+"i only have cheese and beans",recipe_filter_search
 "i need a recipe with eggs",recipe_filter_search
 "recipe ideas with vegetables",recipe_filter_search
 "i have salmon what can i cook",recipe_filter_search
 "what can i make with bread",recipe_filter_search
 "i have flour sugar and eggs",recipe_filter_search
-"i have mushrooms",recipe_filter_search
 "i have leftover rice",recipe_filter_search
 "i’ve got cheese and tomatoes",recipe_filter_search
 "what food can i create with pasta",recipe_filter_search
 "how do i make pancakes",recipe_steps
+"how to make pizza",recipe_steps
 "what are the instructions for that",recipe_steps
+"give me the instructions to cook that",recipe_steps
 "show me how to cook pasta",recipe_steps
 "how to prepare chicken curry",recipe_steps
 "guide me through making pizza",recipe_steps
@@ -103,21 +153,30 @@ text,intent,sub_intent
 "help me cook this meal",recipe_steps
 "how do i cook this dish",recipe_steps
 "give me the cooking steps",recipe_steps
+"what are the steps to prepare it", recipe_steps
 "start recipe instructions",recipe_steps
 "show me step by step cooking",recipe_steps
 "begin cooking instructions",recipe_steps
 "save this recipe",recipe_save
 "save it",recipe_save
+"save that",recipe_save
 "add this to my recipes",recipe_save
+"put this to my saved recipes",recipe_save
 "remember this recipe",recipe_save
 "store this recipe",recipe_save
 "keep this recipe for me",recipe_save
 "save that one",recipe_save
 "add to my saved meals",recipe_save
 "save this meal",recipe_save
+"save this recipe",recipe_save
+"add that to my favourites",recipe_save
+"put that in my favourites",recipe_save
 "what are my saved recipes",recipe_recall
 "show me my saved recipes",recipe_recall
+"show me my favourites",recipe_recall
+"what is in my favourites",recipe_recall
 "open my saved recipes",recipe_recall
+"open my favourites",recipe_recall
 "what did i save",recipe_recall
 "show saved recipes",recipe_recall
 "which recipes did i save",recipe_recall

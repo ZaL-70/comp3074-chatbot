@@ -8,13 +8,23 @@ nltk.download('averaged_perceptron_tagger', quiet=True)
 """Detect proper nouns (names) preceding 
 introductory words to learn the users name"""
 class IdentityManager:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialized = False
+        return cls._instance
 
     def __init__(self):
+        if self._initialized:
+            return
         # Keywords that often precede a name
-        self.name = None
+        self.user_name = None
         self.intro_keywords = [
             "name is", "names", "call me", "i'm", "im", "i am", "this is", "its", "it's"
         ]
+        self._initialized = True
 
     def contains_intro_phrase(self, text_lower):
         tokens = text_lower.split()
@@ -46,7 +56,7 @@ class IdentityManager:
 
         if proper_nouns:
             name = " ".join(proper_nouns).title()
-            self.name = name
+            self.user_name = name
             return name
 
         # Else fallback to potential names (in lowercase) preceding intro words
@@ -58,8 +68,7 @@ class IdentityManager:
         candidate = "".join(c for c in candidate if c.isalpha())
 
         if candidate:
-            name = candidate.title()
-            self.name = name
-            return name
+            self.user_name = candidate.title()
+            return self.user_name
 
         return None

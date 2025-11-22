@@ -31,7 +31,7 @@ class TextMatcher:
 
     """Find the best matching category for a query (e.g. intent, 
      small talk)"""
-    def predict_category(self, query: str, metric="cosine", threshold: float = 0.7):
+    def predict_category(self, query: str, threshold: float = 0.7):
         query_clean = query.strip().lower()
 
         # Check for exact text match first
@@ -41,7 +41,7 @@ class TextMatcher:
                 return self.labels[idx]
 
         # Otherwise use cosine similarity
-        best_idx = self.tfidf_matcher.find_best_match(query, self.vectors, metric, threshold)
+        best_idx = self.tfidf_matcher.find_best_match(query, self.vectors, threshold)
 
         if best_idx is None:
             return None

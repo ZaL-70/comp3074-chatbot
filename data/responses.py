@@ -1,14 +1,32 @@
+from chatbot.identities import IdentityManager
+
+identity_manager = IdentityManager()
+
+def get_named_greeting():
+    name = identity_manager.user_name
+    return [
+        f"Hey there {name}",
+        f"Hello again {name}",
+        f"Hi {name}! Good to see you!"
+    ]
+
 INTENT_RESPONSES = {
     "greeting": [
         "Hello there! What’s your name?",
         "Hi! Nice to meet you. What should I call you?",
-        "Hello there!",
-        "Hey! How’s your day going?",
     ],
     "capabilities": [
-        "I can remember your name, have a short chat and help you with 'transaction'."
+        "I can be your personal kitchen assistant helping you decide"
+        " what to cook, guide you through the process, \nstore your "
+        "favourite recipes & answer cooking related queries. "
+        "I can also remember your name & have a short chat!"
     ],
-    "unknown": [
+    "ask_bot_name": [
+        "I'm ChefBot, your personal kitchen companion!",
+        "Call me ChefBot!",
+        "It's ChefBot. Lets cook!"
+    ],
+    "UNKNOWN": [
         "I'm not sure I understand. Could you rephrase that?"
     ]
 }

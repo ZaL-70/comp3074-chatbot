@@ -2,7 +2,7 @@ from chatbot.core import Chatbot
 
 def main():
     bot = Chatbot()
-    print("Hello, this is ChefBot. How can I help?.\n")
+    print("Hey, this is ChefBot your personal kitchen companion! How may I assist?\n")
 
     # Main chatbot loop
     while True:

@@ -1,7 +1,7 @@
 import nltk
 import numpy as np
 from nltk.corpus import stopwords
-from sklearn.metrics.pairwise import cosine_similarity, euclidean_distances
+from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
 
 # Download necessary nltk resources
@@ -28,19 +28,13 @@ class TfIdfMatcher:
         return document_vectors
 
     """Low-Level document matching for a query (e.g. QA answer)"""
-    def find_best_match(self, query: str, vectors, metric="cosine", threshold: float = 0.7):
+    def find_best_match(self, query: str, vectors, threshold: float = 0.7):
         # Vectorize the query
         q_vec = self.count_vect.transform([query])
         q_tfidf = self.tfidf_transformer.transform(q_vec)
 
         # Compute similarities
-        if metric == "cosine":
-            sims = cosine_similarity(q_tfidf, vectors).flatten()
-        elif metric == "euclidean":
-            distances = euclidean_distances(q_tfidf, vectors).flatten()
-            sims = 1 / (1 + distances)
-        else:
-            raise ValueError(f"Unsupported metric: {metric}")
+        sims = cosine_similarity(q_tfidf, vectors).flatten()
 
         # Get the top match
         best_idx = np.argmax(sims)

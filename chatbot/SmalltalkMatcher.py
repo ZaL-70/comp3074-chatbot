@@ -1,5 +1,4 @@
 import random
-from chatbot.identities import IdentityManager
 from data.responses import SMALL_TALK_RESPONSES, INTENT_RESPONSES
 from utils.TextMatcher import TextMatcher
 
@@ -7,19 +6,18 @@ from utils.TextMatcher import TextMatcher
 on pre-anticipated small talk phrases (labelled by category)"""
 class SmalltalkMatcher(TextMatcher):
 
-    def __init__(self, intent_df, identity_manager: IdentityManager):
+    def __init__(self, intent_df):
         small_talk_training = (intent_df[intent_df["intent"] == "small_talk"]
             .groupby("sub_intent")["text"]
             .apply(list).to_dict())
         super().__init__(small_talk_training, use_stopwords=False)
 
         # Data required for small talk responses
-        self.identity_manager = identity_manager
         self.responses = SMALL_TALK_RESPONSES
 
     """Give relevant response for the type of small talk"""
     def get_response(self, query: str):
-        category = self.predict_category(query, metric="cosine", threshold=0.75)
+        category = self.predict_category(query, threshold=0.6)
 
         if category == "weather":
             return random.choice(SMALL_TALK_RESPONSES["weather"])
@@ -28,4 +26,4 @@ class SmalltalkMatcher(TextMatcher):
         elif category == "thanks":
             return random.choice(SMALL_TALK_RESPONSES["thanks"])
         else:
-            return random.choice(INTENT_RESPONSES["unknown"])
+            return random.choice(INTENT_RESPONSES["UNKNOWN"])
