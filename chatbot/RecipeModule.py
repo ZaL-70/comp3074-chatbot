@@ -1,24 +1,31 @@
 import random
 from data.recipe_data import RECIPES, KNOWN_DIETS
 from enum import Enum, auto
+import nltk
+from nltk.stem import PorterStemmer
+from utils.TextMatcher import TextMatcher
+
+nltk.download("punkt", quiet=True)
 
 # Recipe query specific state
 class RecipeState(Enum):
     DEFAULT = auto()
     SEARCHING = auto()
-    COOKING = auto()
     RECIPE_CONFIRMING = auto()
     STEPS_FINISH = auto()
 
 """Manages queries related to transactions (recipes)"""
 # Notes:
-# - Add stemming/lemmatising to ings/diet (flexible input to data match)
 # - Add half-way marker to step-by-step guide or any similar features
 #   (conversational markers)
-# - Add context tracking on steps (how many left, start, end etc)
+# - Add context tracking on steps (how many left, start, end etc.)
 class RecipeModule:
     def __init__(self):
         self.recipes = RECIPES
+        self.stemmer = PorterStemmer()
+        self.preprocess_recipes()
+        self.recipe_training = {name: [name] for name in self.recipes.keys()}
+        self.recipe_matcher = TextMatcher(self.recipe_training,False,1,2)
         self.diet_keywords = KNOWN_DIETS.union(self.extract_all_diets())
         self.user_saved = []
         self.active_recipe = None
@@ -34,7 +41,8 @@ class RecipeModule:
         self.preferred_recipe = random.choice(list(self.recipes.keys()))
         self.state = RecipeState.SEARCHING
         self.search_matches = [self.preferred_recipe]
-        return self.preferred_recipe + "\nDo you want me to guide you through the steps for this?"
+        return (self.preferred_recipe +
+                "\nDo you want me to guide you through the steps for this?")
 
     # Specific Recipe Search (ingredients and dietary)
     def find_recipes(self, diet_filters=None, ingredient_filters=None, or_query=False):
@@ -51,8 +59,8 @@ class RecipeModule:
                 if self.match_or(recipe, ingredient_filters, diet_filters, fallback=False)
             ]
             # Standard response ("or" word was specified)
-            message = (f"I found these recipes- {', '.join(matches)}." or
-                    message)
+            message = (f"I found these recipes- {', '.join(matches)}."
+                       or message)
 
         # Default behaviour: AND logic first (unless "or" word was seen)
         if not or_query:
@@ -69,7 +77,8 @@ class RecipeModule:
                 if self.match_or(recipe, ingredient_filters, diet_filters, fallback=True)
             ]
             if matches:  # Transparent message in fall back case
-                message = f"I don't think I have that. Here's some potential alternatives- {', '.join(matches)}."
+                message = (f"I don't think I have that. "
+                           f"Here's some potential alternatives- {', '.join(matches)}.")
 
         if matches:
             self.state = RecipeState.SEARCHING
@@ -77,9 +86,12 @@ class RecipeModule:
 
         if len(matches) == 1:
             self.preferred_recipe = matches[0]
-            return message + "\nDo you want me to guide you through the steps for this?"
+            return (message +
+                    "\nDo you want me to guide you through the steps for this?")
         if len(matches) > 1:
-            return message + "\nDo you want me to guide you through the steps for one of these?"
+            self.state = RecipeState.RECIPE_CONFIRMING
+            return (message +
+                    "\nDo you want me to guide you through the steps for one of these?")
 
         return message
 
@@ -91,8 +103,8 @@ class RecipeModule:
         self.active_recipe = recipe
         self.step_index = 0
         first_step = self.recipes[self.active_recipe]['steps'][0]
-        self.state = RecipeState.COOKING
-        return f"Let's make {self.active_recipe}! Step 1: {first_step} (type 'next' to continue)"
+        return (f"Let's make {self.active_recipe}! "
+                f"Step 1: {first_step} (type 'next' to continue)")
 
     def next_step(self):
         if not self.active_recipe:
@@ -100,11 +112,13 @@ class RecipeModule:
         self.step_index += 1
         steps = self.recipes[self.active_recipe]['steps']
         if self.step_index < len(steps):
-            return f"Step {self.step_index+1}: {steps[self.step_index]} (type 'next' to continue)"
+            return (f"Step {self.step_index+1}: {steps[self.step_index]} "
+                    f"(type 'next' to continue)")
         else:
             recipe_done = self.active_recipe
-            self.active_recipe = None
             self.state = RecipeState.STEPS_FINISH
+            self.active_recipe = None
+            self.preferred_recipe = None # Reset after finishing steps
             return (f"You're done! Enjoy your {recipe_done}!"
                     f"\nIf you want I can save this recipe, would you like me to save it?")
 
@@ -128,15 +142,45 @@ class RecipeModule:
 
     # --- Helper Functions ----
 
+    def preprocess_recipes(self):
+        for name, recipe in self.recipes.items():
+            # Stem ingredients
+            recipe["stemmed_ingredients"] = [
+                self.stemmer.stem(ing.lower()) for ing in recipe["ingredients"]
+            ]
+
+            # Stem diets
+            recipe["stemmed_diet"] = [
+                self.stemmer.stem(d.lower()) for d in recipe["diet"]
+            ]
+
+            # Stem recipe name words
+            recipe["stemmed_name"] = [
+                self.stemmer.stem(w) for w in name.lower().split()
+            ]
+
     REFERENCE_WORDS = {"that", "that one", "it", "this", "those", "them"}
 
-    # Returns the user_name of a recipe from a query
+    # Returns the name of a recipe from a query
     def extract_recipe_name(self, user_input, intent=None):
         user_input = user_input.lower().strip()
+
+        # Check exact match
         for recipe_name in self.recipes.keys():
             if recipe_name.lower() in user_input:
                 return recipe_name
-        # Potential addition - look for fewer words part of full recipe user_name
+
+        # Check stem based match
+        stems = [self.stemmer.stem(token) for token in nltk.word_tokenize(user_input)]
+        for recipe_name, recipe in self.recipes.items():
+            if any(stem in recipe["stemmed_name"] for stem in stems):
+                return recipe_name
+
+        # Cosine similarity based match
+        best = self.recipe_matcher.predict_category(user_input, threshold=0.55)
+        if best:
+            return best
+
         # Check if reference word used to refer to a recipe
         intents_requiring_recipe = {
             "recipe_steps",
@@ -154,28 +198,30 @@ class RecipeModule:
         return "UNKNOWN_RECIPE"
 
     def resolve_recipe(self, recipe_name=None):
-        self.preferred_recipe = recipe_name
         if recipe_name == "UNKNOWN_RECIPE":
-            return None, "I don't recognise that recipe. Could you tell me the exact name?"
+            self.state = RecipeState.DEFAULT
+            return None, "I couldn’t find that recipe"
 
-        if (not self.preferred_recipe) or (recipe_name == "NO_TARGET_REF"):
+        if recipe_name == "NO_TARGET_REF":
+            self.state = RecipeState.RECIPE_CONFIRMING
             return None, "I’m not sure which recipe you mean. Could you tell me the name?"
 
-        if self.preferred_recipe not in self.recipes:
-            return None, f"I couldn’t find the recipe '{self.preferred_recipe}'"
+        if recipe_name in self.recipes:
+            self.preferred_recipe = recipe_name
+            return self.preferred_recipe, None
 
-        return self.preferred_recipe, None
+        return None, f"I couldn’t find the recipe '{recipe_name}'"
 
     # Checks if every filter word is in a recipe (preferred, default behaviour)
     @staticmethod
     def match_and(recipe, ingredient_filters, diet_filters):
         ingredient_ok = all(
-            any(f in ingredient for ingredient in recipe["ingredients"])
+            any(f in ingredient for ingredient in recipe["stemmed_ingredients"])
             for f in ingredient_filters
         ) if ingredient_filters else True
 
         diet_ok = all(
-            f in recipe["diet"]
+            f in recipe["stemmed_diet"]
             for f in diet_filters
         ) if diet_filters else True
 
@@ -188,23 +234,23 @@ class RecipeModule:
             return False
         elif fallback and diet_filters: # Cases where diets exist but didn't with the ingredients (e.g. veg options but not with chicken)
             diet_ok = any(
-                f in recipe["diet"]
+                f in recipe["stemmed_diet"]
                 for f in diet_filters
             ) if diet_filters else False
             return diet_ok
         elif fallback and not diet_filters: # Cases where ingredients exist but not with each other (e.g. milk & spices)
             ingredient_ok = any(
-                any(f in ingredient for ingredient in recipe["ingredients"])
+                any(f in ingredient for ingredient in recipe["stemmed_ingredients"])
                 for f in ingredient_filters
             ) if ingredient_filters else False
             return ingredient_ok
         else: # Valid cases that don't fall back
             ingredient_ok = any(
-                any(f in ingredient for ingredient in recipe["ingredients"])
+                any(f in ingredient for ingredient in recipe["stemmed_ingredients"])
                 for f in ingredient_filters
             ) if ingredient_filters else False
             diet_ok = any(
-                f in recipe["diet"]
+                f in recipe["stemmed_diet"]
                 for f in diet_filters
             ) if diet_filters else False
             return ingredient_ok or diet_ok
@@ -222,16 +268,18 @@ class RecipeModule:
         diet_filters = []
         ingredient_filters = []
 
-        for word in filters:
-            # match diet words
-            if word in self.diet_keywords:
-                diet_filters.append(word)
+        stemmed_filters = [self.stemmer.stem(word.lower()) for word in filters]
+
+        for stem in stemmed_filters:
+            # Match (stemmed) diet words
+            if stem in {self.stemmer.stem(diet_word) for diet_word in self.diet_keywords}:
+                diet_filters.append(stem)
                 continue
 
             # match ingredients
             for recipe in self.recipes.values():
-                if any(word == ingredient for ingredient in recipe["ingredients"]):
-                    ingredient_filters.append(word)
+                if stem in recipe["stemmed_ingredients"]:
+                    ingredient_filters.append(stem)
                     break
 
         return diet_filters, ingredient_filters

@@ -1,5 +1,4 @@
 import re
-
 import nltk
 from nltk import word_tokenize, pos_tag
 
@@ -9,6 +8,9 @@ nltk.download('averaged_perceptron_tagger', quiet=True)
 
 """Detect proper nouns (names) preceding 
 introductory words to learn the users name"""
+# Notes:
+# - Add error handling to looks_like_name (validate path to successful name assignment)
+# - Modify extract_name to tell user of invalid name
 class IdentityManager:
     _instance = None
 
@@ -64,16 +66,20 @@ class IdentityManager:
         # Else fallback to potential names (in lowercase) preceding intro words
         after = text_lower.split(phrase, 1)[1].strip()
         if not after or len(after.split()) == 0:
-            return None
+            return "invalid"
 
         candidate = after.split()[0]
         candidate = "".join(c for c in candidate if c.isalpha())
+
+        # If candidate contains digits, invalid
+        if any(char.isdigit() for char in after.split()[0]):
+            return "has_number"
 
         if candidate:
             self.user_name = candidate.title()
             return self.user_name
 
-        return None
+        return "invalid"
 
     NON_NAME_RESPONSES = {
         "dont", "do", "not", "know", "i dont know", "idk",
@@ -83,17 +89,16 @@ class IdentityManager:
         "not sure", "unsure"
     }
 
+    # Helper to check if "quick, single response" input follows naming conventions
     def looks_like_name(self, text: str):
-        # Reject long phrases
+        # Long phrases are not names
         words = text.strip().lower().split()
         if len(words) == 0 or len(words) > 4:
             return False
 
-        # Reject any phrase in the NON_NAME_RESPONSES list
+        # Reject any phrase or word in the NON_NAME_RESPONSES list
         if text in self.NON_NAME_RESPONSES:
             return False
-
-        # Reject any word that is in NON_NAME_RESPONSES
         if any(w in self.NON_NAME_RESPONSES for w in words):
             return False
 

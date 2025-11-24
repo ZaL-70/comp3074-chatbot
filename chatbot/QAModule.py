@@ -15,7 +15,7 @@ class QAModule:
 
     """Find the answer best matching the question (using search engine logic)"""
     def get_answer(self, query: str):
-        best_idx = self.tfidf_matcher.find_best_match(query, self.question_vectors, 0.7)
+        best_idx = self.tfidf_matcher.find_best_match(query, self.question_vectors, 0.65)
 
         if best_idx is None:
             return "I'm not sure I have the answer to that. Try rephrasing."

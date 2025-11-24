@@ -2,7 +2,7 @@ import nltk
 import numpy as np
 from nltk.corpus import stopwords
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
+from sklearn.feature_extraction.text import TfidfTransformer, TfidfVectorizer
 
 # Download necessary nltk resources
 nltk.download('stopwords', quiet=True)
@@ -10,13 +10,12 @@ nltk.download('stopwords', quiet=True)
 """Utility class for low-level, general, 
 query-doc matching using TF-IDF"""
 class TfIdfMatcher:
-
-    def __init__(self, use_stopwords: bool = True):
+    def __init__(self, ngram_min: int = 1, ngram_max: int = 1, use_stopwords: bool = True):
         # Prepare TD-IDF
         if use_stopwords:
-            self.count_vect = CountVectorizer(stop_words=stopwords.words('english'), lowercase=True)
+            self.count_vect = TfidfVectorizer(stop_words=stopwords.words('english'), ngram_range=(ngram_min, ngram_max))
         else:
-            self.count_vect = CountVectorizer(lowercase=True)
+            self.count_vect = TfidfVectorizer(analyzer='char_wb', ngram_range=(ngram_min, ngram_max))
 
         self.tfidf_transformer = TfidfTransformer(use_idf=True, sublinear_tf=True)
 

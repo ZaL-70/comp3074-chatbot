@@ -23,65 +23,125 @@ class Chatbot:
         self.qa_module = QAModule(self.qa_df)
         self.identity_manager = IdentityManager()
         self.smalltalk_module = SmalltalkMatcher(self.intent_df)
-        self.recipes = RecipeModule()
+        self.recipes_handler = RecipeModule()
         self.user_state = UserState.DEFAULT
+        self.pending_intent = None
+        self.RECIPE_INTENTS = {
+            "recipe_steps",
+            "recipe_save",
+            "recipe_recall",
+            "recipe_search",
+            "recipe_filter_search"
+        }
+        self.AGREE_TERMS = {
+            "yes", "yep", "yeah", "yup", "sure", "absolutely", "of course",
+            "definitely", "ok", "okay", "sure thing", "affirmative", "please do",
+            "go ahead", "sounds good", "why not", "alright", "do it"
+        }
+        self.DISAGREE_TERMS = {
+            "no", "nope", "nah", "not really", "don't", "do not",
+            "negative", "no thanks", "no thank you", "stop", "cancel",
+            "please don't", "rather not", "not now", "leave it"
+        }
 
     def respond(self, user_input: str):
-        # Respond to user_name assignment prompt
-        if self.identity_manager.extract_name(user_input):
+        # ---- Respond to user_name assignment prompt if applicable ----
+        name = self.identity_manager.extract_name(user_input)
+        if name == "has_number":
+            self.identity_manager.user_name = None
+            return "Names shouldn’t contain numbers. What should I call you?"
+        if name == "invalid":
+            self.identity_manager.user_name = None
+            return "That doesn’t look like a name. What should I call you?"
+        if name:
             return f"Nice to meet you, {self.identity_manager.user_name}!"
 
         # Predict intent
         intent = self.intent_model.predict(user_input)
-        print(intent)
+        print("intent: ", intent)
 
-        # Respond to state specific situations when applicable
-        if self.recipes.state == RecipeState.COOKING and self.recipes.active_recipe and (
+        # Reset states when topic switches away from recipe (intent not matching with current recipe state)
+        if self.recipes_handler.state != RecipeState.DEFAULT and intent not in self.RECIPE_INTENTS:
+            self.recipes_handler.state = RecipeState.DEFAULT
+            self.recipes_handler.active_recipe = None
+            self.recipes_handler.search_matches = []
+            self.recipes_handler.preferred_recipe = None
+            self.pending_intent = None
+
+        # ---- Respond to recipe state specific situations when applicable ----
+        if self.recipes_handler.active_recipe and (
                 user_input.lower() == "next" or "continue" in user_input.lower()):
-            return self.recipes.next_step()
-        if self.recipes.state == RecipeState.SEARCHING:
-            if user_input.lower() == "yes" and len(self.recipes.search_matches) == 1:
-                return self.recipes.start_recipe_steps(self.recipes.search_matches[0])
-            elif user_input.lower() == "yes" and len(self.recipes.search_matches) > 1:
-                self.recipes.state = RecipeState.RECIPE_CONFIRMING
-                return "Great! Which one do you want the steps for?" # Add new function
+            return self.recipes_handler.next_step()
+        if self.recipes_handler.state == RecipeState.SEARCHING:
+            if user_input.lower() == "yes" and len(self.recipes_handler.search_matches) == 1:
+                return self.recipes_handler.start_recipe_steps(self.recipes_handler.search_matches[0])
+            elif user_input.lower() == "no":
+                self.recipes_handler.state = RecipeState.DEFAULT
+                return "No worries. Is there anything else I can assist with"
             else:
+                self.recipes_handler.state = RecipeState.DEFAULT
+        # Only run in non-recipe-search intent (preserve chronological transaction order)
+        if self.recipes_handler.state == RecipeState.RECIPE_CONFIRMING and intent != "recipe_filter_search":
+            if user_input.lower().strip() in self.AGREE_TERMS and len(self.recipes_handler.search_matches) > 1:
+                return "Great! Which one do you want the steps for?"
+            elif user_input.lower().strip() in self.DISAGREE_TERMS:
+                self.recipes_handler.state = RecipeState.DEFAULT
                 return "No worries. Is there anything else I can assist with"
-        if self.recipes.state == RecipeState.STEPS_FINISH:
-            if user_input.lower() == "yes" and len(self.recipes.search_matches) == 1:
-                return self.recipes.save_recipe(self.recipes.search_matches[0]) # Add behaviour
-            if user_input.lower() == "no":
-                self.recipes.state = RecipeState.DEFAULT
+            else:
+                recipe_name = self.recipes_handler.extract_recipe_name(
+                    user_input,
+                    self.pending_intent
+                )
+                if self.pending_intent == "recipe_save":
+                    self.pending_intent = None
+                    return self.recipes_handler.save_recipe(recipe_name)
+                self.pending_intent = None
+                return self.recipes_handler.start_recipe_steps(recipe_name)
+        if self.recipes_handler.state == RecipeState.STEPS_FINISH:
+            if user_input.lower().strip() in self.AGREE_TERMS and len(self.recipes_handler.search_matches) == 1:
+                return self.recipes_handler.save_recipe(self.recipes_handler.search_matches[0]) # Add behaviour
+            if user_input.lower().strip() in self.DISAGREE_TERMS:
+                self.recipes_handler.state = RecipeState.DEFAULT
                 return "No worries. Is there anything else I can assist with"
-        if self.recipes.state == RecipeState.RECIPE_CONFIRMING:
-            if user_input.lower() in self.recipes.search_matches:
-                return self.recipes.start_recipe_steps(user_input)
+
+        # ---- Allow single phrase response for user asking personal identity ----
         if self.user_state == UserState.NAME_ASKING and intent == "UNKNOWN":
-            if self.identity_manager.looks_like_name(user_input):
+            name_check = self.identity_manager.looks_like_name(user_input)
+            # Error checking with guided recovery
+            if name_check == "valid":
                 self.identity_manager.user_name = user_input.title()
                 self.user_state = UserState.DEFAULT
                 return f"Nice to meet you, {self.identity_manager.user_name}!"
-            else:
-                self.identity_manager.user_name = "Friend"
+            elif name_check == "has_number":    # Has numbers, ask again
+                return "Names shouldn’t contain numbers. What should I call you?"
+            elif name_check == "anonymous":
+                self.identity_manager.user_name = "My Friend"
                 self.user_state = UserState.DEFAULT
-                return "Okay, I'll just call you friend for now."
+                return "Okay, I'll just call you 'My Friend' for now."
+            else:   # Invalid, ask again
+                return "That doesn’t look like a name. What should I call you?"
 
-        # Respond to certain intents with a relevant response
+        # ---- Respond to certain intents with a relevant response ----
         if intent == "recipe_steps":
-            recipe_name = self.recipes.extract_recipe_name(user_input, intent)
-            return self.recipes.start_recipe_steps(recipe_name)
+            self.pending_intent = intent
+            recipe_name = self.recipes_handler.extract_recipe_name(user_input, intent)
+            return self.recipes_handler.start_recipe_steps(recipe_name)
         if intent == "recipe_save":
-            recipe_name = self.recipes.extract_recipe_name(user_input, intent)
-            return f"{self.identity_manager.user_name}'s favourites: " + self.recipes.save_recipe(recipe_name)
+            self.pending_intent = intent
+            recipe_name = self.recipes_handler.extract_recipe_name(user_input, intent)
+            return self.recipes_handler.save_recipe(recipe_name)
         if intent == "recipe_recall":
-            return self.recipes.recall_saved()
+            if self.identity_manager.user_name:
+                return  (f"{self.identity_manager.user_name}'s favourites: " +
+                     self.recipes_handler.recall_saved())
+            return "Your favourites: " + self.recipes_handler.recall_saved()
         if intent == "recipe_search":
-            return f"Here's a recipe for you: {self.recipes.random_recipe()}"
+            return f"Here's a recipe for you: {self.recipes_handler.random_recipe()}"
         if intent == "recipe_filter_search":
             filters = [word.lower() for word in user_input.split()]
-            diet_filters, ingredient_filters = self.recipes.extract_filters(filters)
+            diet_filters, ingredient_filters = self.recipes_handler.extract_filters(filters)
             or_query = "or" in user_input.lower()
-            matches = self.recipes.find_recipes(diet_filters, ingredient_filters, or_query)
+            matches = self.recipes_handler.find_recipes(diet_filters, ingredient_filters, or_query)
             return matches
         if intent == "greeting":
             if self.identity_manager.user_name:
