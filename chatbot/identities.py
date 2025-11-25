@@ -8,9 +8,6 @@ nltk.download('averaged_perceptron_tagger', quiet=True)
 
 """Detect proper nouns (names) preceding 
 introductory words to learn the users name"""
-# Notes:
-# - Add error handling to looks_like_name (validate path to successful name assignment)
-# - Modify extract_name to tell user of invalid name
 class IdentityManager:
     _instance = None
 
@@ -94,21 +91,21 @@ class IdentityManager:
         # Long phrases are not names
         words = text.strip().lower().split()
         if len(words) == 0 or len(words) > 4:
-            return False
+            return "invalid"
 
         # Reject any phrase or word in the NON_NAME_RESPONSES list
         if text in self.NON_NAME_RESPONSES:
-            return False
+            return "anonymous"
         if any(w in self.NON_NAME_RESPONSES for w in words):
-            return False
+            return "anonymous"
 
         # Reject punctuation (except apostrophes)
         if re.search(r"[^a-zA-Z\s']", text):
-            return False
+            return "invalid"
 
         # If all words alphabetic-like, consider it a name
         for w in words:
             if not re.match(r"^[A-Za-z']+$", w):
-                return False
+                return "has_number"
 
-        return True
+        return "valid"

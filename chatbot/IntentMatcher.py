@@ -3,11 +3,13 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import SGDClassifier
 from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.pipeline import Pipeline
+from chatbot.RecipeModule import RecipeModule
 
 """Intent match prompt by training on
  pre-anticipated queries (labelled by intent)"""
 class IntentClassifier:
     def __init__(self, df):
+        self.recipe_handler = RecipeModule()
         self.model = Pipeline([
             ('tfidf', TfidfVectorizer(analyzer='char', ngram_range=(1,3))),
             ('clf', SGDClassifier(loss='log_loss', alpha=0.0001))
@@ -18,17 +20,20 @@ class IntentClassifier:
 
         self.model.fit(df['text'], df['intent'])
 
-    @staticmethod
-    def rule_based_intent(user_input):
+    def rule_based_intents(self, user_input):
         # Recipe save rule - Matches: "save pancakes", "save the soup", "save my recipe" etc.
         if re.match(r"^save\b", user_input.lower().strip()):
             return "recipe_save"
+        # Clarification rule for input ambiguously naming some existing meal
+        recipe_name = self.recipe_handler.extract_recipe_name(user_input)
+        if recipe_name not in ["UNKNOWN_RECIPE", "NO_TARGET_REF"]:
+            return "clarification_intent"
 
         return None  # No rule matched
 
     def predict(self, user_input):
         # Try rule based first
-        rule_intent = self.rule_based_intent(user_input)
+        rule_intent = self.rule_based_intents(user_input)
         if rule_intent is not None:
             return rule_intent
 

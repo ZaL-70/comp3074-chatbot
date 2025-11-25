@@ -1,7 +1,7 @@
 RECIPES = {
     "chicken fried rice": {
         "ingredients": ["chicken", "rice", "egg", "soy sauce", "vegetables"],
-        "diet": ["non-vegetarian", "not-halal"],
+        "diet": ["non-vegetarian", "halal"],
         "steps": [
             "Cook the rice and set aside.",
             "Fry the chicken until golden brown.",

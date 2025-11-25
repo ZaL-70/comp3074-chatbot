@@ -1,9 +1,10 @@
 import random
-from enum import Enum, auto
 import pandas as pd
+from enum import Enum, auto
+from chatbot.NLGPipeline import NLGPipeline
 from data.responses import *
 from chatbot.QAModule import QAModule
-from chatbot.RecipeModule import RecipeModule, RecipeState
+from chatbot.RecipeModule import RecipeState
 from chatbot.SmalltalkMatcher import SmalltalkMatcher
 from chatbot.identities import IdentityManager
 from chatbot.IntentMatcher import *
@@ -11,6 +12,7 @@ from chatbot.IntentMatcher import *
 # General user specific states
 class UserState(Enum):
     DEFAULT = auto()
+    CLARIFYING = auto()
     NAME_ASKING = auto()
 
 """Brings separate components of the chatbot together 
@@ -24,18 +26,25 @@ class Chatbot:
         self.identity_manager = IdentityManager()
         self.smalltalk_module = SmalltalkMatcher(self.intent_df)
         self.recipes_handler = RecipeModule()
+        self.NLG = NLGPipeline()
+        self.nlg_context = {
+            "just_mentioned": False,
+            "recipe_name": None
+        }
         self.user_state = UserState.DEFAULT
         self.pending_intent = None
+        self.pending_recipe = None
         self.RECIPE_INTENTS = {
             "recipe_steps",
             "recipe_save",
             "recipe_recall",
             "recipe_search",
-            "recipe_filter_search"
+            "recipe_filter_search",
+            "recipe_details"
         }
         self.AGREE_TERMS = {
             "yes", "yep", "yeah", "yup", "sure", "absolutely", "of course",
-            "definitely", "ok", "okay", "sure thing", "affirmative", "please do",
+            "definitely", "ok", "okay", "sure thing", "please do",
             "go ahead", "sounds good", "why not", "alright", "do it"
         }
         self.DISAGREE_TERMS = {
@@ -49,26 +58,51 @@ class Chatbot:
         name = self.identity_manager.extract_name(user_input)
         if name == "has_number":
             self.identity_manager.user_name = None
-            return "Names shouldn’t contain numbers. What should I call you?"
+            self.user_state = UserState.NAME_ASKING
+            return "Names shouldn't contain numbers. What should I call you?"
         if name == "invalid":
             self.identity_manager.user_name = None
-            return "That doesn’t look like a name. What should I call you?"
+            self.user_state = UserState.NAME_ASKING
+            return "That doesn't look like a name. What should I call you?"
         if name:
+            self.user_state = UserState.DEFAULT
             return f"Nice to meet you, {self.identity_manager.user_name}!"
 
-        # Predict intent
+        # ---- Predict intent ----
         intent = self.intent_model.predict(user_input)
-        print("intent: ", intent)
+        # print("intent: ", intent)
 
-        # Reset states when topic switches away from recipe (intent not matching with current recipe state)
+        # ---- Reset states when topic switches ----
+        # For recipe states
         if self.recipes_handler.state != RecipeState.DEFAULT and intent not in self.RECIPE_INTENTS:
             self.recipes_handler.state = RecipeState.DEFAULT
             self.recipes_handler.active_recipe = None
             self.recipes_handler.search_matches = []
             self.recipes_handler.preferred_recipe = None
             self.pending_intent = None
+            self.nlg_context = {"just_mentioned": False, "recipe_name": None}
 
-        # ---- Respond to recipe state specific situations when applicable ----
+        # For general user states
+        if self.user_state == UserState.NAME_ASKING and intent not in {"UNKNOWN", "ask_user_name"}:
+            self.user_state = UserState.DEFAULT
+        if self.user_state == UserState.CLARIFYING:
+            text = user_input.lower().strip()
+            if any(word in text for word in ["step", "steps", "instructions"]):
+                self.user_state = UserState.DEFAULT
+                return self.recipes_handler.start_recipe_steps(self.pending_recipe)
+            if any(word in text for word in ["save", "keep", "store", "favourite", "favorite"]):
+                self.user_state = UserState.DEFAULT
+                return self.recipes_handler.save_recipe(self.pending_recipe)
+            if any(word in text for word in ["describe", "description", "details", "overview", "info", "information"]):
+                self.user_state = UserState.DEFAULT
+                return self.NLG.generate_recipe_description(
+                    self.pending_recipe,
+                    "overview",
+                    context=self.nlg_context
+                )
+
+        # ---- Respond to state specific situations when applicable ----
+        # Recipe state situations
         if self.recipes_handler.active_recipe and (
                 user_input.lower() == "next" or "continue" in user_input.lower()):
             return self.recipes_handler.next_step()
@@ -95,8 +129,15 @@ class Chatbot:
                 if self.pending_intent == "recipe_save":
                     self.pending_intent = None
                     return self.recipes_handler.save_recipe(recipe_name)
+                if self.pending_intent == "recipe_steps":
+                    self.pending_intent = None
+                    return self.recipes_handler.start_recipe_steps(recipe_name)
+                # Else default to description
+                recipe, err = self.recipes_handler.resolve_recipe(recipe_name)
+                if err:
+                    return err
                 self.pending_intent = None
-                return self.recipes_handler.start_recipe_steps(recipe_name)
+                return self.NLG.generate_recipe_description(recipe_name, "overview", context=self.nlg_context)
         if self.recipes_handler.state == RecipeState.STEPS_FINISH:
             if user_input.lower().strip() in self.AGREE_TERMS and len(self.recipes_handler.search_matches) == 1:
                 return self.recipes_handler.save_recipe(self.recipes_handler.search_matches[0]) # Add behaviour
@@ -104,7 +145,7 @@ class Chatbot:
                 self.recipes_handler.state = RecipeState.DEFAULT
                 return "No worries. Is there anything else I can assist with"
 
-        # ---- Allow single phrase response for user asking personal identity ----
+        # User state specific situations (topic of name assignment only)
         if self.user_state == UserState.NAME_ASKING and intent == "UNKNOWN":
             name_check = self.identity_manager.looks_like_name(user_input)
             # Error checking with guided recovery
@@ -113,7 +154,7 @@ class Chatbot:
                 self.user_state = UserState.DEFAULT
                 return f"Nice to meet you, {self.identity_manager.user_name}!"
             elif name_check == "has_number":    # Has numbers, ask again
-                return "Names shouldn’t contain numbers. What should I call you?"
+                return "Names shouldn't contain numbers. What should I call you?"
             elif name_check == "anonymous":
                 self.identity_manager.user_name = "My Friend"
                 self.user_state = UserState.DEFAULT
@@ -122,9 +163,32 @@ class Chatbot:
                 return "That doesn’t look like a name. What should I call you?"
 
         # ---- Respond to certain intents with a relevant response ----
+        if intent == "clarification_intent":
+            recipe_name = self.recipes_handler.extract_recipe_name(user_input)
+            recipe, err = self.recipes_handler.resolve_recipe(recipe_name)
+            if err:
+                return err
+            # Store for referring expressions
+            self.pending_recipe = recipe_name
+            self.nlg_context = {
+                "just_mentioned": True,
+                "recipe_name": recipe_name
+            }
+            self.user_state = UserState.CLARIFYING
+            return f"You're asking about {recipe_name}. Did you want the steps, a description, or to save it?"
+        if intent == "recipe_details":
+            self.pending_intent = intent
+            recipe_name = self.recipes_handler.extract_recipe_name(user_input, intent)
+            recipe, err = self.recipes_handler.resolve_recipe(recipe_name)
+            if err:
+                return err
+            self.nlg_context = { "just_mentioned": True, "recipe_name": recipe_name }
+            description = self.NLG.generate_recipe_description(recipe_name, "overview", context=self.nlg_context)
+            return description
         if intent == "recipe_steps":
             self.pending_intent = intent
             recipe_name = self.recipes_handler.extract_recipe_name(user_input, intent)
+            self.nlg_context = { "just_mentioned": True, "recipe_name": recipe_name }
             return self.recipes_handler.start_recipe_steps(recipe_name)
         if intent == "recipe_save":
             self.pending_intent = intent
@@ -136,9 +200,12 @@ class Chatbot:
                      self.recipes_handler.recall_saved())
             return "Your favourites: " + self.recipes_handler.recall_saved()
         if intent == "recipe_search":
-            return f"Here's a recipe for you: {self.recipes_handler.random_recipe()}"
+            return self.recipes_handler.random_recipe()
         if intent == "recipe_filter_search":
-            filters = [word.lower() for word in user_input.split()]
+            clean_input = user_input
+            for char in [',', ';']:
+                clean_input = clean_input.replace(char, ' ')
+            filters = [word.lower() for word in clean_input.split()]
             diet_filters, ingredient_filters = self.recipes_handler.extract_filters(filters)
             or_query = "or" in user_input.lower()
             matches = self.recipes_handler.find_recipes(diet_filters, ingredient_filters, or_query)

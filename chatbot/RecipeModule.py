@@ -1,4 +1,5 @@
 import random
+from chatbot.NLGPipeline import NLGPipeline
 from data.recipe_data import RECIPES, KNOWN_DIETS
 from enum import Enum, auto
 import nltk
@@ -15,13 +16,10 @@ class RecipeState(Enum):
     STEPS_FINISH = auto()
 
 """Manages queries related to transactions (recipes)"""
-# Notes:
-# - Add half-way marker to step-by-step guide or any similar features
-#   (conversational markers)
-# - Add context tracking on steps (how many left, start, end etc.)
 class RecipeModule:
     def __init__(self):
         self.recipes = RECIPES
+        self.NLG = NLGPipeline()
         self.stemmer = PorterStemmer()
         self.preprocess_recipes()
         self.recipe_training = {name: [name] for name in self.recipes.keys()}
@@ -41,8 +39,9 @@ class RecipeModule:
         self.preferred_recipe = random.choice(list(self.recipes.keys()))
         self.state = RecipeState.SEARCHING
         self.search_matches = [self.preferred_recipe]
-        return (self.preferred_recipe +
-                "\nDo you want me to guide you through the steps for this?")
+        description = self.NLG.generate_recipe_description(self.preferred_recipe, "overview")
+        return (f"Here's a recipe for you: {description}\n"
+                "Do you want me to guide you through the steps for this?")
 
     # Specific Recipe Search (ingredients and dietary)
     def find_recipes(self, diet_filters=None, ingredient_filters=None, or_query=False):
@@ -59,8 +58,7 @@ class RecipeModule:
                 if self.match_or(recipe, ingredient_filters, diet_filters, fallback=False)
             ]
             # Standard response ("or" word was specified)
-            message = (f"I found these recipes- {', '.join(matches)}."
-                       or message)
+            message = self.NLG.aggregate_recipe_list(matches, "exact")
 
         # Default behaviour: AND logic first (unless "or" word was seen)
         if not or_query:
@@ -69,7 +67,8 @@ class RecipeModule:
                 if self.match_and(recipe, ingredient_filters, diet_filters)
             ]
             if matches:
-                message = f"I found these recipes- {', '.join(matches)}."
+                message = self.NLG.aggregate_recipe_list(matches, "exact")
+
         # Fall back to or query to try and get some result
         if not matches:
             matches = [
@@ -77,8 +76,7 @@ class RecipeModule:
                 if self.match_or(recipe, ingredient_filters, diet_filters, fallback=True)
             ]
             if matches:  # Transparent message in fall back case
-                message = (f"I don't think I have that. "
-                           f"Here's some potential alternatives- {', '.join(matches)}.")
+                message = self.NLG.aggregate_recipe_list(matches, "alternative")
 
         if matches:
             self.state = RecipeState.SEARCHING
@@ -109,11 +107,24 @@ class RecipeModule:
     def next_step(self):
         if not self.active_recipe:
             return "No active recipe. Start one first!"
+
         self.step_index += 1
         steps = self.recipes[self.active_recipe]['steps']
+
         if self.step_index < len(steps):
-            return (f"Step {self.step_index+1}: {steps[self.step_index]} "
-                    f"(type 'next' to continue)")
+            remaining = len(steps) - self.step_index
+            # Contextual markers
+            if self.step_index == len(steps) - 1:
+                marker = "Finally, "
+            elif self.step_index == len(steps) // 2:
+                marker = "We're halfway there! Next, "
+            else:
+                marker = "Next, "
+
+            step_text = steps[self.step_index].lower()
+            progress = f"({remaining} step{'s' if remaining > 1 else ''} remaining)"
+
+            return f"{marker}{step_text} {progress}"
         else:
             recipe_done = self.active_recipe
             self.state = RecipeState.STEPS_FINISH
@@ -137,8 +148,14 @@ class RecipeModule:
     # View Saved Recipes Intent
     def recall_saved(self):
         if not self.user_saved:
-            return "Nothing haven’t saved any recipes yet."
-        return ", ".join(self.user_saved)
+            return "You haven't saved any recipes yet."
+        if len(self.user_saved) == 1:
+            return f"You have one saved recipe: {self.user_saved[0]}"
+        elif len(self.user_saved) == 2:
+            return f"Your saved recipes: {self.user_saved[0]} and {self.user_saved[1]}"
+        else:
+            recipe_list = ', '.join(self.user_saved[:-1]) + ', and ' + self.user_saved[-1]
+            return f"Your saved recipes: {recipe_list}"
 
     # --- Helper Functions ----
 
@@ -185,6 +202,7 @@ class RecipeModule:
         intents_requiring_recipe = {
             "recipe_steps",
             "recipe_save",
+            "recipe_details"
         }
         if intent in intents_requiring_recipe:
             normalized = " ".join(user_input.split())
@@ -200,7 +218,7 @@ class RecipeModule:
     def resolve_recipe(self, recipe_name=None):
         if recipe_name == "UNKNOWN_RECIPE":
             self.state = RecipeState.DEFAULT
-            return None, "I couldn’t find that recipe"
+            return None, "I couldn't find that recipe"
 
         if recipe_name == "NO_TARGET_REF":
             self.state = RecipeState.RECIPE_CONFIRMING
