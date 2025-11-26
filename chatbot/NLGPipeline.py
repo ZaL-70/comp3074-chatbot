@@ -1,37 +1,25 @@
 import random
 from data.recipe_data import RECIPES
 
+"""Library of NLG methods for every step of the pipeline to
+ generate relevant descriptions about recipes & search queries"""
 class NLGPipeline:
     def __init__(self):
         self.recipes = RECIPES
 
+    # Decide which fields to include (& level of detail). Can change based on user intent
     def content_determination(self, recipe_name, purpose="overview"):
         recipe = self.recipes[recipe_name]
 
         if purpose == "overview": # (Default)
-            # For recipe overview, include ingredients and diet info
             return {
                 'name': recipe_name,
                 'ingredients': recipe['ingredients'][:3],  # Top 3 ingredients only
                 'diet': recipe['diet'],
                 'step_count': len(recipe['steps'])
             }
-        elif purpose == "full_details":
-            # For detailed view, include everything
-            return {
-                'name': recipe_name,
-                'ingredients': recipe['ingredients'],
-                'diet': recipe['diet'],
-                'steps': recipe['steps']
-            }
-        elif purpose == "dietary_info":
-            # Focus on dietary restrictions
-            return {
-                'name': recipe_name,
-                'diet': recipe['diet'],
-                'ingredients': recipe['ingredients']
-            }
 
+    # Creates a structure for the data before aggregation using existing content
     @staticmethod
     def document_structuring(content, purpose="overview"):
         if purpose == "overview":
@@ -40,16 +28,10 @@ class NLGPipeline:
                 'highlights': content['ingredients'],
                 'dietary': content['diet']
             }
-        elif purpose == "full_details":
-            return {
-                'introduction': [content['name']],
-                'ingredients': content['ingredients'],
-                'dietary': content['diet'],
-                'instructions': content['steps']
-            }
 
         return content
 
+    # Generates main template the user will see in the output
     @staticmethod
     def aggregation(structured_content, purpose="overview"):
         aggregated = {}
@@ -62,8 +44,9 @@ class NLGPipeline:
             else:
                 ing_text = ingredients[0]
 
-            aggregated[
-                'intro'] = f"{structured_content['introduction'][0]} requires {structured_content['introduction'][1]} steps"
+            # Aggregate quick intro & main ingredients
+            aggregated['intro'] = (f"{structured_content['introduction'][0]}"
+                                   f" requires {structured_content['introduction'][1]} steps")
             aggregated['highlights'] = f"featuring {ing_text}"
 
             # Aggregate dietary info
@@ -79,7 +62,8 @@ class NLGPipeline:
 
         return aggregated
 
-    # Aggregation helper: Creates natural language lists
+    # Return relevant template based on search query results
+    # - Default case - exact matches otherwise assume no precise matches were found
     @staticmethod
     def aggregate_recipe_list(matches, match_type):
         recipe_list = ', '.join(matches[:-1]) + ', and ' + matches[-1]
@@ -99,15 +83,14 @@ class NLGPipeline:
             else:
                 return f"I don't think I have that. Here are some alternatives: {recipe_list}"
 
+    # Replaces words from the template. Can decide based on experience level
+    # (e.g. beginner, experienced, expert etc.) & with randomness
     @staticmethod
     def lexical_choice(aggregated_content, user_experience="beginner"):
         # Adjust vocabulary based on user experience
         if user_experience == "beginner":
             # Use simpler terms
             aggregated_content['intro'] = aggregated_content['intro'].replace('requires', 'needs')
-        elif user_experience == "expert":
-            # Use more sophisticated terms
-            aggregated_content['intro'] = aggregated_content['intro'].replace('requires', 'comprises')
 
         # Add variety to avoid repetition
         if 'featuring' in aggregated_content.get('highlights', ''):
@@ -117,6 +100,8 @@ class NLGPipeline:
 
         return aggregated_content
 
+    # Replaces recipe names with referral words. Words decided by some existing context
+    # (e.g. just mentioned, no context, mentioned a very long time ago etc.)
     @staticmethod
     def referring_expression(content, context=None):
         # If recipe was just mentioned, use pronouns
@@ -125,9 +110,10 @@ class NLGPipeline:
 
         return content
 
+    # Put templates together with correct language grammar & flow
     @staticmethod
     def realisation(lexical_content):
-        # Combine all parts with proper punctuation and flow
+        # Combine all parts with proper punctuation & flow
         intro = lexical_content['intro'].capitalize()
         parts = [intro]
 
@@ -136,7 +122,7 @@ class NLGPipeline:
         if 'dietary' in lexical_content and lexical_content['dietary']:
             parts.append(lexical_content['dietary'])
 
-        # Join with commas and proper sentence structure
+        # Join with commas & proper sentence structure
         if len(parts) == 1:
             return parts[0] + "."
         elif len(parts) == 2:
@@ -145,6 +131,7 @@ class NLGPipeline:
             # Use discourse markers for better flow
             return f"{parts[0]}, {parts[1]}, and is {parts[2]}."
 
+    # Full pipeline
     def generate_recipe_description(self, recipe_name, purpose="overview", user_experience="beginner", context=None):
         content = self.content_determination(recipe_name, purpose)
         structured = self.document_structuring(content, purpose)

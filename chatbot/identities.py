@@ -6,8 +6,8 @@ from nltk import word_tokenize, pos_tag
 nltk.download('punkt', quiet=True)
 nltk.download('averaged_perceptron_tagger', quiet=True)
 
-"""Detect proper nouns (names) preceding 
-introductory words to learn the users name"""
+"""Shared chatbot singleton class that detects & validates 
+names preceding introductory words to learn the users name"""
 class IdentityManager:
     _instance = None
 
@@ -39,7 +39,7 @@ class IdentityManager:
 
         return None
 
-    # Lab 0 - text processing with pos tags inspired
+    # Lab 0 - use text processing with pos tags inspired
     def extract_name(self, text: str):
         text_lower = text.lower()
 
@@ -68,7 +68,7 @@ class IdentityManager:
         candidate = after.split()[0]
         candidate = "".join(c for c in candidate if c.isalpha())
 
-        # If candidate contains digits, invalid
+        # Validate lowercase inputs first
         if any(char.isdigit() for char in after.split()[0]):
             return "has_number"
 
@@ -85,8 +85,8 @@ class IdentityManager:
         "you", "choose", "your", "choice", "up", "to",
         "not sure", "unsure"
     }
-
-    # Helper to check if "quick, single response" input follows naming conventions
+    # Helper to check "quick, single response" inputs follow
+    # naming conventions or imply anonymity
     def looks_like_name(self, text: str):
         # Long phrases are not names
         words = text.strip().lower().split()

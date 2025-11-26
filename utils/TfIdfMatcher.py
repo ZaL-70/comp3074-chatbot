@@ -19,14 +19,14 @@ class TfIdfMatcher:
 
         self.tfidf_transformer = TfidfTransformer(use_idf=True, sublinear_tf=True)
 
-    """Vectorise documents using TF-IDF"""
+    # Vectorise documents using TF-IDF
     def vectorise(self, documents):
         x_counts = self.count_vect.fit_transform(documents)
         document_vectors = self.tfidf_transformer.fit_transform(x_counts)
 
         return document_vectors
 
-    """Low-Level document matching for a query (e.g. QA answer)"""
+    # Low-Level document matching for a query (e.g. QA answer index)
     def find_best_match(self, query: str, vectors, threshold: float = 0.7):
         # Vectorize the query
         q_vec = self.count_vect.transform([query])
@@ -38,6 +38,7 @@ class TfIdfMatcher:
         # Get the top match
         best_idx = np.argmax(sims)
         best_score = sims[best_idx]
+        # Debug
         # print(best_score)
 
         if best_score < threshold:

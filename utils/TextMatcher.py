@@ -1,8 +1,7 @@
 from utils.TfIdfMatcher import TfIdfMatcher
 
-"""Base class for high-level text matcher classes using TF-IDF"""
+"""Utility base class for high-level text matcher classes using TF-IDF"""
 class TextMatcher:
-
     def __init__(self, training_data: dict, use_stopwords: bool = False, ngram_min: int = 1, ngram_max: int = 1):
         self.texts = None
         self.labels = None
@@ -15,10 +14,12 @@ class TextMatcher:
         # Vectorise & label training data
         self.train()
 
-    """Vectorize and label training data"""
+    # Vectorize & label training data
     def train(self):
         texts = []
         labels = []
+
+        # Label each training text phrase
         for category, phrases in self.training_data.items():
             for phrase in phrases:
                 texts.append(phrase)
@@ -29,13 +30,12 @@ class TextMatcher:
         self.texts = texts
         self.labels = labels
 
-    """Find the best matching category for a query (e.g. intent, 
-     small talk)"""
+    # Find the best matching category for a query (e.g. intent, small talk etc.)
     def predict_category(self, query: str, threshold: float = 0.7):
         query_clean = query.strip().lower()
 
-        # Check for exact text match first
-        # (failsafe for phrases with high amount of stop words)
+        # Check for exact text match first (failsafe for phrases with high
+        # amount of stop words which tend to give low similarity scores)
         for idx, text in enumerate(self.texts):
             if query_clean == text:
                 return self.labels[idx]

@@ -19,7 +19,7 @@ class UserState(Enum):
  so it can respond to queries accordingly"""
 class Chatbot:
     def __init__(self):
-        self.qa_df = pd.read_csv("data/COMP3074-CW1-Dataset.csv")
+        self.qa_df = pd.read_csv("data/cooking-qa.csv")
         self.intent_df = pd.read_csv("data/intent-training.csv")
         self.intent_model = IntentClassifier(self.intent_df)
         self.qa_module = QAModule(self.qa_df)
@@ -53,6 +53,8 @@ class Chatbot:
             "please don't", "rather not", "not now", "leave it"
         }
 
+    # Choose or create template with response to return to user whilst keeping
+    # track of & updating context, user states & possible pending intents
     def respond(self, user_input: str):
         # ---- Respond to user_name assignment prompt if applicable ----
         name = self.identity_manager.extract_name(user_input)
@@ -70,6 +72,7 @@ class Chatbot:
 
         # ---- Predict intent ----
         intent = self.intent_model.predict(user_input)
+        # Debug
         # print("intent: ", intent)
 
         # ---- Reset states when topic switches ----
@@ -107,9 +110,9 @@ class Chatbot:
                 user_input.lower() == "next" or "continue" in user_input.lower()):
             return self.recipes_handler.next_step()
         if self.recipes_handler.state == RecipeState.SEARCHING:
-            if user_input.lower() == "yes" and len(self.recipes_handler.search_matches) == 1:
+            if user_input.lower().strip() in self.AGREE_TERMS and len(self.recipes_handler.search_matches) == 1:
                 return self.recipes_handler.start_recipe_steps(self.recipes_handler.search_matches[0])
-            elif user_input.lower() == "no":
+            elif user_input.lower().strip() in self.DISAGREE_TERMS:
                 self.recipes_handler.state = RecipeState.DEFAULT
                 return "No worries. Is there anything else I can assist with"
             else:
