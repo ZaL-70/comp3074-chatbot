@@ -23,7 +23,7 @@ class RecipeModule:
         self.stemmer = PorterStemmer()
         self.preprocess_recipes()
         self.recipe_training = {name: [name] for name in self.recipes.keys()}
-        self.recipe_matcher = TextMatcher(self.recipe_training,False,1,2)
+        self.recipe_matcher = TextMatcher(self.recipe_training,True,1,2)
         self.diet_keywords = KNOWN_DIETS.union(self.extract_all_diets())
         self.user_saved = []
         self.active_recipe = None
@@ -197,7 +197,7 @@ class RecipeModule:
                 return recipe_name
 
         # Cosine similarity based match
-        best = self.recipe_matcher.predict_category(user_input, threshold=0.55)
+        best = self.recipe_matcher.predict_category(user_input, threshold=0.8) # High for just a single word match
         if best:
             return best
 

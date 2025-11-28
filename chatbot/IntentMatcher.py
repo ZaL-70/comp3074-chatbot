@@ -29,6 +29,8 @@ class IntentClassifier:
 
         # Clarification rule - Matches ambiguous recipe input like "pancakes"
         recipe_name = self.recipe_handler.extract_recipe_name(user_input)
+        # Debug
+        # print("Extracted recipe name (rule-based):", recipe_name)
         if recipe_name not in ["UNKNOWN_RECIPE", "NO_TARGET_REF"]:
             return "clarification_intent"
 
