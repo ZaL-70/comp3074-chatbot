@@ -1,9 +1,9 @@
 import random
+import nltk
+from nltk.stem import PorterStemmer
 from chatbot.NLGPipeline import NLGPipeline
 from data.recipe_data import RECIPES, KNOWN_DIETS
 from enum import Enum, auto
-import nltk
-from nltk.stem import PorterStemmer
 from utils.TextMatcher import TextMatcher
 
 nltk.download("punkt", quiet=True)
