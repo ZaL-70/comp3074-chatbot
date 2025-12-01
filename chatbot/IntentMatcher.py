@@ -48,7 +48,7 @@ class IntentClassifier:
         probs = self.model.predict_proba([user_input])[0]
         max_prob = max(probs)
         # Evaluation Debug
-        print("Intent Probability:", max_prob)
+        # print("Intent Probability:", max_prob)
         # print("Accuracy scores:", self.scores)
         # print("Mean accuracy:", self.scores.mean())
         # Use a confidence level to ignore potential vague inputs

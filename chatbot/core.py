@@ -78,7 +78,7 @@ class Chatbot:
         # ---- Predict intent ----
         intent = self.intent_model.predict(user_input)
         # Debug
-        print("intent: ", intent)
+        # print("intent: ", intent)
 
         # ---- Reset states when topic switches ----
         # For recipe states
