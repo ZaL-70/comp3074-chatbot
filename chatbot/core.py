@@ -232,8 +232,6 @@ class Chatbot:
             return random.choice(INTENT_RESPONSES["ask_bot_name"])
         if intent == "capabilities":
             return random.choice(INTENT_RESPONSES["capabilities"])
-        if intent == "qa":
-            return self.qa_module.get_answer(user_input)
         if intent == "small_talk":
             return self.smalltalk_module.get_response(user_input)
         if intent == "UNKNOWN":
