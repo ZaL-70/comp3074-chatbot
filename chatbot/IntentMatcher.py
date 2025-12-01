@@ -16,8 +16,8 @@ class IntentClassifier:
         ])
 
         # Evaluation Debug
-        cv = StratifiedKFold(n_splits=8, shuffle=True, random_state=42)
-        self.scores = cross_val_score(self.model, df["text"], df["intent"], cv=cv)
+        # cv = StratifiedKFold(n_splits=8, shuffle=True, random_state=42)
+        # self.scores = cross_val_score(self.model, df["text"], df["intent"], cv=cv)
 
         self.model.fit(df['text'], df['intent'])
 
@@ -28,11 +28,12 @@ class IntentClassifier:
             return "recipe_save"
 
         # Clarification rule - Matches ambiguous recipe input like "pancakes"
-        recipe_name = self.recipe_handler.extract_recipe_name(user_input)
-        # Debug
-        # print("Extracted recipe name (rule-based):", recipe_name)
-        if recipe_name not in ["UNKNOWN_RECIPE", "NO_TARGET_REF"]:
-            return "clarification_intent"
+        if len(user_input.split()) < 4:
+            recipe_name = self.recipe_handler.extract_recipe_name(user_input)
+            # Debug
+            # print("Extracted recipe name (rule-based):", recipe_name)
+            if recipe_name not in ["UNKNOWN_RECIPE", "NO_TARGET_REF"]:
+                return "clarification_intent"
 
         return None  # No rule matched
 
@@ -47,7 +48,7 @@ class IntentClassifier:
         probs = self.model.predict_proba([user_input])[0]
         max_prob = max(probs)
         # Evaluation Debug
-        # print("Intent Probability:", max_prob)
+        print("Intent Probability:", max_prob)
         # print("Accuracy scores:", self.scores)
         # print("Mean accuracy:", self.scores.mean())
         # Use a confidence level to ignore potential vague inputs

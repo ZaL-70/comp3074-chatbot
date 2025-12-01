@@ -230,7 +230,7 @@ class RecipeModule:
         # Referred recipe search on a non-existent referral target (reset, use confirmation state)
         if recipe_name == "NO_TARGET_REF":
             self.state = RecipeState.RECIPE_CONFIRMING
-            return None, "I’m not sure which recipe you mean. Could you tell me the name?"
+            return None, "I'm not sure which recipe you mean. Could you tell me the name?"
 
         # Searched for a correct, existing recipe (set as current preference, no error message)
         if recipe_name in self.recipes:
@@ -238,7 +238,7 @@ class RecipeModule:
             return self.preferred_recipe, None
 
         # Default to non-existent recipe
-        return None, f"I couldn’t find the recipe '{recipe_name}'"
+        return None, f"I couldn't find the recipe '{recipe_name}'"
 
     # Checks if EVERY filter word is in a recipe
     @staticmethod

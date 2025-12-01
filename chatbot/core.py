@@ -70,10 +70,15 @@ class Chatbot:
             self.user_state = UserState.DEFAULT
             return f"Nice to meet you, {self.identity_manager.user_name}!"
 
+        # ---- Respond to QA question early if applicable ----
+        answer = self.qa_module.get_answer(user_input)
+        if answer != "I'm not sure I have the answer to that. Try rephrasing.":
+            return answer
+
         # ---- Predict intent ----
         intent = self.intent_model.predict(user_input)
         # Debug
-        # print("intent: ", intent)
+        print("intent: ", intent)
 
         # ---- Reset states when topic switches ----
         # For recipe states
@@ -163,7 +168,7 @@ class Chatbot:
                 self.user_state = UserState.DEFAULT
                 return "Okay, I'll just call you 'My Friend' for now."
             else:   # Invalid, ask again
-                return "That doesn’t look like a name. What should I call you?"
+                return "That doesn't look like a name. What should I call you?"
 
         # ---- Respond to certain intents with a relevant response ----
         if intent == "clarification_intent":
