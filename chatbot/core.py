@@ -93,21 +93,6 @@ class Chatbot:
         # For general user states
         if self.user_state == UserState.NAME_ASKING and intent not in {"UNKNOWN", "ask_user_name"}:
             self.user_state = UserState.DEFAULT
-        if self.user_state == UserState.CLARIFYING:
-            text = user_input.lower().strip()
-            if any(word in text for word in ["step", "steps", "instructions"]):
-                self.user_state = UserState.DEFAULT
-                return self.recipes_handler.start_recipe_steps(self.pending_recipe)
-            if any(word in text for word in ["save", "keep", "store", "favourite", "favorite"]):
-                self.user_state = UserState.DEFAULT
-                return self.recipes_handler.save_recipe(self.pending_recipe)
-            if any(word in text for word in ["describe", "description", "details", "overview", "info", "information"]):
-                self.user_state = UserState.DEFAULT
-                return self.NLG.generate_recipe_description(
-                    self.pending_recipe,
-                    "overview",
-                    context=self.nlg_context
-                )
 
         # ---- Respond to state specific situations when applicable ----
         # Recipe state situations
@@ -153,7 +138,22 @@ class Chatbot:
                 self.recipes_handler.state = RecipeState.DEFAULT
                 return "No worries. Is there anything else I can assist with"
 
-        # User state specific situations (topic of name assignment only)
+        # User state specific situations
+        if self.user_state == UserState.CLARIFYING:
+            text = user_input.lower().strip()
+            if any(word in text for word in ["step", "steps", "instructions"]):
+                self.user_state = UserState.DEFAULT
+                return self.recipes_handler.start_recipe_steps(self.pending_recipe)
+            if any(word in text for word in ["save", "keep", "store", "favourite", "favorite"]):
+                self.user_state = UserState.DEFAULT
+                return self.recipes_handler.save_recipe(self.pending_recipe)
+            if any(word in text for word in ["describe", "description", "details", "overview", "info", "information"]):
+                self.user_state = UserState.DEFAULT
+                return self.NLG.generate_recipe_description(
+                    self.pending_recipe,
+                    "overview",
+                    context=self.nlg_context
+                )
         if self.user_state == UserState.NAME_ASKING and intent == "UNKNOWN":
             name_check = self.identity_manager.looks_like_name(user_input)
             # Error checking with guided recovery

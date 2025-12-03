@@ -12,7 +12,7 @@ def get_named_greeting():
 
 INTENT_RESPONSES = {
     "greeting": [
-        "Hello there! Wha's your name?",
+        "Hello there! What's your name?",
         "Hi! Nice to meet you. What should I call you?",
     ],
     "capabilities": [
