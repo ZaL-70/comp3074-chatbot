@@ -11,8 +11,8 @@ class IntentClassifier:
     def __init__(self, df):
         self.recipe_handler = RecipeModule()
         self.model = Pipeline([
-            ('tfidf', TfidfVectorizer(analyzer='char', ngram_range=(1,3))),
-            ('clf', SGDClassifier(loss='log_loss', alpha=0.0001))
+            ('tfidf', TfidfVectorizer(analyzer='char_wb', ngram_range=(2,5))),
+            ('clf', SGDClassifier(loss='log_loss', alpha=0.0005))
         ])
 
         # Evaluation Debug

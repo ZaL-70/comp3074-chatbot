@@ -2,11 +2,11 @@ from utils.TfIdfMatcher import TfIdfMatcher
 
 """Utility base class for high-level text matcher classes using TF-IDF"""
 class TextMatcher:
-    def __init__(self, training_data: dict, use_stopwords: bool = False, ngram_min: int = 1, ngram_max: int = 1):
+    def __init__(self, training_data: dict, ngram_min: int = 1, ngram_max: int = 1, use_stopwords: bool = True, analyzer = "word"):
         self.texts = None
         self.labels = None
         self.vectors = None
-        self.tfidf_matcher = TfIdfMatcher(use_stopwords=use_stopwords, ngram_min=ngram_min, ngram_max=ngram_max)
+        self.tfidf_matcher = TfIdfMatcher(use_stopwords=use_stopwords, ngram_min=ngram_min, ngram_max=ngram_max, analyzer=analyzer)
 
         # Anticipated queries
         self.training_data = training_data

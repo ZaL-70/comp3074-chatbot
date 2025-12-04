@@ -10,7 +10,7 @@ class SmalltalkMatcher(TextMatcher):
         small_talk_training = (intent_df[intent_df["intent"] == "small_talk"]
             .groupby("sub_intent")["text"]
             .apply(list).to_dict())
-        super().__init__(small_talk_training, use_stopwords=False)
+        super().__init__(small_talk_training, use_stopwords=False, analyzer="char_wb", ngram_min=1, ngram_max=2)
 
         # Data required for small talk responses
         self.responses = SMALL_TALK_RESPONSES

@@ -6,12 +6,12 @@ from sklearn.feature_extraction.text import TfidfTransformer, TfidfVectorizer
 """Utility class for low-level, general, 
 query-doc matching using TF-IDF"""
 class TfIdfMatcher:
-    def __init__(self, ngram_min: int = 1, ngram_max: int = 1, use_stopwords: bool = True):
+    def __init__(self, ngram_min: int = 1, ngram_max: int = 1, use_stopwords: bool = True, analyzer = "word"):
         # Prepare TD-IDF
         if use_stopwords:
-            self.count_vect = TfidfVectorizer(stop_words=stopwords.words('english'), ngram_range=(ngram_min, ngram_max))
+            self.count_vect = TfidfVectorizer(analyzer=analyzer, ngram_range=(ngram_min, ngram_max), stop_words=stopwords.words('english'))
         else:
-            self.count_vect = TfidfVectorizer(analyzer='char_wb', ngram_range=(ngram_min, ngram_max))
+            self.count_vect = TfidfVectorizer(analyzer=analyzer, ngram_range=(ngram_min, ngram_max))
 
         self.tfidf_transformer = TfidfTransformer(use_idf=True, sublinear_tf=True)
 

@@ -21,7 +21,7 @@ class RecipeModule:
         self.stemmer = PorterStemmer()
         self.preprocess_recipes()
         self.recipe_training = {name: [name] for name in self.recipes.keys()}
-        self.recipe_matcher = TextMatcher(self.recipe_training,True,1,2)
+        self.recipe_matcher = TextMatcher(self.recipe_training, use_stopwords=True, ngram_min=1, ngram_max=2, analyzer="word")
         self.diet_keywords = KNOWN_DIETS.union(self.extract_all_diets())
         self.user_saved = []
         self.active_recipe = None

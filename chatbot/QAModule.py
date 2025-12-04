@@ -12,7 +12,7 @@ class QAModule:
         # Extract questions & answers from QA csv
         self.questions = [self.preprocess(q) for q in qa_df["Question"].astype(str).tolist()]
         self.answers = qa_df["Answer"].astype(str).tolist()
-        self.tfidf_matcher = TfIdfMatcher(use_stopwords=True)
+        self.tfidf_matcher = TfIdfMatcher(use_stopwords=True, analyzer="word")
 
         # Vectorise question documents
         self.question_vectors = self.tfidf_matcher.vectorise(self.questions)
@@ -52,7 +52,7 @@ class QAModule:
         text = re.sub(r"[^a-z0-9\s']", " ", text)
         tokens = text.split()
 
-        # POS tag the tokens
+        # POS tag tokens
         pos_tags = nltk.pos_tag(tokens)
 
         # Lemmatise using correct POS
