@@ -1,6 +1,15 @@
+import nltk
+
 from chatbot.core import Chatbot
 
 def main():
+    # Install necessary nltk resources
+    nltk.download('stopwords')
+    nltk.download('averaged_perceptron_tagger')
+    nltk.download('punkt')
+    nltk.download('wordnet')
+    nltk.download('omw-1.4')
+
     bot = Chatbot()
     print("Hey, this is ChefBot your personal kitchen companion! How may I assist?\n")
 

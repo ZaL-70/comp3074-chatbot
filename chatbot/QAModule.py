@@ -1,7 +1,7 @@
 import re
-
-from nltk import PorterStemmer
-
+import nltk
+from nltk.stem import WordNetLemmatizer
+from nltk.corpus import wordnet
 from utils.TfIdfMatcher import TfIdfMatcher
 
 """Retrieve answer from QA CSV by checking
@@ -20,7 +20,7 @@ class QAModule:
     # Find the answer best matching the question (using similarity (search engine) logic) (Lab 1)
     def get_answer(self, query: str):
         query_processed = self.preprocess(query)
-        best_idx, best_score = self.tfidf_matcher.find_best_match(query_processed, self.question_vectors, 0.7)
+        best_idx, best_score = self.tfidf_matcher.find_best_match(query_processed, self.question_vectors, 0.65)
 
         if best_idx is None or best_score <= 0.2:
             return "no_answer"
@@ -29,13 +29,36 @@ class QAModule:
 
         return self.answers[best_idx]
 
-    # Stemming helper
+    # WordNet POS tag map
+    @staticmethod
+    def nltk_pos_to_wordnet(tag: str):
+        if tag.startswith('J'):  # Adjective
+            return wordnet.ADJ
+        elif tag.startswith('V'):  # Verb
+            return wordnet.VERB
+        elif tag.startswith('N'):  # Noun
+            return wordnet.NOUN
+        elif tag.startswith('R'):  # Adverb
+            return wordnet.ADV
+        else:
+            return wordnet.NOUN
+
+    # Lemmatising helper
     @staticmethod
     def preprocess(query: str) -> str:
-        stemmer = PorterStemmer()
+        lemmatizer = WordNetLemmatizer()
+
         text = query.lower().strip()
-        # Remove punctuation but keep apostrophes (help contractions)
         text = re.sub(r"[^a-z0-9\s']", " ", text)
         tokens = text.split()
-        stemmed = [stemmer.stem(tok) for tok in tokens]
-        return " ".join(stemmed)
+
+        # POS tag the tokens
+        pos_tags = nltk.pos_tag(tokens)
+
+        # Lemmatise using correct POS
+        lemmas = [
+            lemmatizer.lemmatize(token, pos=QAModule.nltk_pos_to_wordnet(pos))
+            for token, pos in pos_tags
+        ]
+
+        return " ".join(lemmas)

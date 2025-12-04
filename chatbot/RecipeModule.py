@@ -6,8 +6,6 @@ from data.recipe_data import RECIPES, KNOWN_DIETS
 from enum import Enum, auto
 from utils.TextMatcher import TextMatcher
 
-nltk.download("punkt", quiet=True)
-
 # Recipe query specific states
 class RecipeState(Enum):
     DEFAULT = auto()

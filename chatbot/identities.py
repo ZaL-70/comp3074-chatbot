@@ -1,10 +1,5 @@
 import re
-import nltk
 from nltk import word_tokenize, pos_tag
-
-# Install necessary nltk resources
-nltk.download('punkt', quiet=True)
-nltk.download('averaged_perceptron_tagger', quiet=True)
 
 """Shared chatbot singleton class that detects & validates 
 names preceding introductory words to learn the users name"""
@@ -78,7 +73,7 @@ class IdentityManager:
 
         return "invalid"
 
-    NON_NAME_RESPONSES = {
+    ANONYMOUS_RESPONSES = {
         "dont", "do", "not", "know", "i dont know", "idk",
         "no", "maybe", "later", "nothing", "none", "no idea",
         "whatever", "anything", "something", "meh", "fine",
@@ -93,19 +88,19 @@ class IdentityManager:
         if len(words) == 0 or len(words) > 4:
             return "invalid"
 
-        # Reject any phrase or word in the NON_NAME_RESPONSES list
-        if text in self.NON_NAME_RESPONSES:
+        # If all words alphabetic-like, consider it a name
+        for w in words:
+            if not re.match(r"^[A-Za-z']+$", w):
+                return "has_number"
+
+        # Reject any phrase or word in the ANONYMOUS_RESPONSES list
+        if text in self.ANONYMOUS_RESPONSES:
             return "anonymous"
-        if any(w in self.NON_NAME_RESPONSES for w in words):
+        if any(w in self.ANONYMOUS_RESPONSES for w in words):
             return "anonymous"
 
         # Reject punctuation (except apostrophes)
         if re.search(r"[^a-zA-Z\s']", text):
             return "invalid"
-
-        # If all words alphabetic-like, consider it a name
-        for w in words:
-            if not re.match(r"^[A-Za-z']+$", w):
-                return "has_number"
 
         return "valid"
