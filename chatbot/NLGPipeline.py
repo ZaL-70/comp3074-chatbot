@@ -76,12 +76,12 @@ class NLGPipeline:
             if match_type == "exact":
                 return f"I found these recipes: {recipe_list}"
             else:
-                return f"I don't think I have that. Here are some alternatives: {recipe_list}"
+                return f"I don't think I have anything with all of those. Here are some alternatives: {recipe_list}"
         else:
             if match_type == "exact":
                 return f"I found these recipes: {recipe_list}"
             else:
-                return f"I don't think I have that. Here are some alternatives: {recipe_list}"
+                return f"I don't think I have anything with all of those. Here are some alternatives: {recipe_list}"
 
     # Replaces words from the template. Can decide based on experience level
     # (e.g. beginner, experienced, expert etc.) & with randomness

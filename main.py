@@ -7,7 +7,7 @@ def main():
     # Main chatbot loop
     while True:
         user_input = input("You: ")
-        if user_input.lower() in ["quit", "exit", "bye"]:
+        if user_input.lower().strip() in ["quit", "exit", "bye"]:
             print("Bot: Goodbye!")
             break
         response = bot.respond(user_input)

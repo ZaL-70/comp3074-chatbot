@@ -41,7 +41,7 @@ class TextMatcher:
                 return self.labels[idx]
 
         # Otherwise use cosine similarity
-        best_idx = self.tfidf_matcher.find_best_match(query, self.vectors, threshold)
+        best_idx, _ = self.tfidf_matcher.find_best_match(query, self.vectors, threshold)
 
         if best_idx is None:
             return None

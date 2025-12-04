@@ -44,4 +44,4 @@ class TfIdfMatcher:
         if best_score < threshold:
             return None
 
-        return best_idx
+        return best_idx, best_score

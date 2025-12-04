@@ -12,8 +12,8 @@ from chatbot.IntentMatcher import *
 # General user specific states
 class UserState(Enum):
     DEFAULT = auto()
-    CLARIFYING = auto()
-    NAME_ASKING = auto()
+    RECIPE_INTENT_CLARIFYING = auto()
+    SELF_NAME_ASSIGNING = auto()
 
 """Brings separate components of the chatbot together 
  so it can respond to queries accordingly"""
@@ -60,11 +60,11 @@ class Chatbot:
         name = self.identity_manager.extract_name(user_input)
         if name == "has_number":
             self.identity_manager.user_name = None
-            self.user_state = UserState.NAME_ASKING
+            self.user_state = UserState.SELF_NAME_ASSIGNING
             return "Names shouldn't contain numbers. What should I call you?"
         if name == "invalid":
             self.identity_manager.user_name = None
-            self.user_state = UserState.NAME_ASKING
+            self.user_state = UserState.SELF_NAME_ASSIGNING
             return "That doesn't look like a name. What should I call you?"
         if name:
             self.user_state = UserState.DEFAULT
@@ -72,7 +72,7 @@ class Chatbot:
 
         # ---- Respond to QA question early if applicable ----
         answer = self.qa_module.get_answer(user_input)
-        if answer != "I'm not sure I have the answer to that. Try rephrasing.":
+        if answer != "no_answer":
             return answer
 
         # ---- Predict intent ----
@@ -91,7 +91,7 @@ class Chatbot:
             self.nlg_context = {"just_mentioned": False, "recipe_name": None}
 
         # For general user states
-        if self.user_state == UserState.NAME_ASKING and intent not in {"UNKNOWN", "ask_user_name"}:
+        if self.user_state == UserState.SELF_NAME_ASSIGNING and intent not in {"UNKNOWN", "ask_user_name"}:
             self.user_state = UserState.DEFAULT
 
         # ---- Respond to state specific situations when applicable ----
@@ -139,7 +139,7 @@ class Chatbot:
                 return "No worries. Is there anything else I can assist with"
 
         # User state specific situations
-        if self.user_state == UserState.CLARIFYING:
+        if self.user_state == UserState.RECIPE_INTENT_CLARIFYING:
             text = user_input.lower().strip()
             if any(word in text for word in ["step", "steps", "instructions"]):
                 self.user_state = UserState.DEFAULT
@@ -154,7 +154,7 @@ class Chatbot:
                     "overview",
                     context=self.nlg_context
                 )
-        if self.user_state == UserState.NAME_ASKING and intent == "UNKNOWN":
+        if self.user_state == UserState.SELF_NAME_ASSIGNING and intent == "UNKNOWN":
             name_check = self.identity_manager.looks_like_name(user_input)
             # Error checking with guided recovery
             if name_check == "valid":
@@ -182,7 +182,7 @@ class Chatbot:
                 "just_mentioned": True,
                 "recipe_name": recipe_name
             }
-            self.user_state = UserState.CLARIFYING
+            self.user_state = UserState.RECIPE_INTENT_CLARIFYING
             return f"You're asking about {recipe_name}. Did you want the steps, a description, or to save it?"
         if intent == "recipe_details":
             self.pending_intent = intent
@@ -221,12 +221,12 @@ class Chatbot:
         if intent == "greeting":
             if self.identity_manager.user_name:
                 return random.choice(get_named_greeting())
-            self.user_state = UserState.NAME_ASKING
+            self.user_state = UserState.SELF_NAME_ASSIGNING
             return random.choice(INTENT_RESPONSES["greeting"])
         if intent == "ask_user_name":
             if self.identity_manager.user_name:
                 return f"Your name is {self.identity_manager.user_name}."
-            self.user_state = UserState.NAME_ASKING
+            self.user_state = UserState.SELF_NAME_ASSIGNING
             return "I don't know your name yet. What should I call you?"
         if intent == "ask_bot_name":
             return random.choice(INTENT_RESPONSES["ask_bot_name"])
