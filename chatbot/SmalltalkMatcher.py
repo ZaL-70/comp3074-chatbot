@@ -17,7 +17,7 @@ class SmalltalkMatcher(TextMatcher):
 
     # Give relevant response for the type of small talk (using similarity (search engine) logic) (Lab 1)
     def get_response(self, query: str):
-        category = self.predict_category(query, threshold=0.6)
+        category = self.predict_category(query, threshold=0.7)
 
         if category == "weather":
             return random.choice(SMALL_TALK_RESPONSES["weather"])

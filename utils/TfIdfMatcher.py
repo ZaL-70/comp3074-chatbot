@@ -42,6 +42,6 @@ class TfIdfMatcher:
         # print("similarity score: ", best_score)
 
         if best_score < threshold:
-            return None
+            return None, 0
 
         return best_idx, best_score
