@@ -21,7 +21,7 @@ class RecipeModule:
         self.stemmer = PorterStemmer()
         self.preprocess_recipes()
         self.recipe_training = {name: [name] for name in self.recipes.keys()}
-        self.recipe_matcher = TextMatcher(self.recipe_training, use_stopwords=True, ngram_min=1, ngram_max=2, analyzer="word")
+        self.recipe_matcher = TextMatcher(self.recipe_training, use_stopwords=True, ngram_min=2, ngram_max=5, analyzer="char")
         self.diet_keywords = KNOWN_DIETS.union(self.extract_all_diets())
         self.user_saved = []
         self.active_recipe = None
@@ -98,6 +98,7 @@ class RecipeModule:
         recipe, err = self.resolve_recipe(recipe_name)
         if err:
             return err
+        self.state = RecipeState.DEFAULT
         self.active_recipe = recipe
         self.step_index = 0
         first_step = self.recipes[self.active_recipe]['steps'][0]
@@ -129,8 +130,7 @@ class RecipeModule:
         else:
             recipe_done = self.active_recipe
             self.state = RecipeState.STEPS_FINISH
-            self.active_recipe = None
-            self.preferred_recipe = None # Reset after finishing steps
+            self.active_recipe = None # Reset after finishing steps
             # Contextual marker
             return (f"You're done! Enjoy your {recipe_done}!"
                     f"\nIf you want I can save this recipe, would you like me to save it?")
@@ -145,20 +145,20 @@ class RecipeModule:
         if recipe not in self.user_saved:
             self.user_saved.append(recipe)
             return f"Recipe '{recipe}' saved!"
-        return "Looks like you've got this one saved already"
+        return f"Looks like you've got {recipe} saved already"
 
     # Return list of user's saved recipes
     def recall_saved(self):
         # Select template with most suitable grammar based on the current list
         if not self.user_saved:
-            return "You haven't saved any recipes yet."
+            return "Nothing saved yet."
         if len(self.user_saved) == 1:
-            return f"You have one saved recipe: {self.user_saved[0]}"
+            return f"One saved recipe: {self.user_saved[0]}"
         elif len(self.user_saved) == 2:
-            return f"Your saved recipes: {self.user_saved[0]} and {self.user_saved[1]}"
+            return f"Two saved recipes: {self.user_saved[0]} and {self.user_saved[1]}"
         else:
             recipe_list = ', '.join(self.user_saved[:-1]) + ', and ' + self.user_saved[-1]
-            return f"Your saved recipes: {recipe_list}"
+            return f"All saved recipes: {recipe_list}"
 
     # --- Helper Functions ----
 

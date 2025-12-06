@@ -31,6 +31,7 @@ text,intent,sub_intent
 "are you well",small_talk,mood
 "sup",small_talk,mood
 "whats up",small_talk,mood
+"whats good",small_talk,mood
 "are you okay",small_talk,mood
 "hows life",small_talk,mood
 
@@ -129,7 +130,8 @@ text,intent,sub_intent
 "describe this recipe",recipe_details,
 "give me an overview for this recipe",recipe_details,
 "what diets does this recipe fit",recipe_details,
-"tell me more about this dish",recipe_details,
+"tell me more about it",recipe_details,
+"tell me more about ",recipe_details,
 "what does this recipe include",recipe_details,
 "what are the details of this recipe",recipe_details,
 "tell me the recipe details",recipe_details,
@@ -137,15 +139,18 @@ text,intent,sub_intent
 "what goes into making lasagne",recipe_details,
 
 "find me a recipe",recipe_search,
-"what can I eat today",recipe_search,
-"I want a recipe",recipe_search,
+"what can i eat today",recipe_search,
+"what can i cook",recipe_search,
+"what should i eat",recipe_search,
+"what should i cook",recipe_search,
+"what can I cook today",recipe_search,
+"i want a recipe",recipe_search,
 "give me a recipe",recipe_search,
 "suggest a recipe",recipe_search,
 "show me a recipe",recipe_search,
 "i want to cook something",recipe_search,
-"what should I make today",recipe_search,
+"what should i make today",recipe_search,
 "find a meal for me",recipe_search,
-"what can I cook today",recipe_search,
 "give me meal ideas",recipe_search,
 "show something I can cook",recipe_search,
 "recommend something to cook",recipe_search,
@@ -180,6 +185,9 @@ text,intent,sub_intent
 
 "how do I make pancakes",recipe_steps,
 "how to make pizza",recipe_steps,
+"lets make it",recipe_steps,
+"lets cook that",recipe_steps,
+"lets make this",recipe_steps,
 "what are the instructions for that",recipe_steps,
 "can you give me the instructions for that",recipe_steps,
 "give me the steps",recipe_steps,

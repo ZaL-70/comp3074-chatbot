@@ -1,5 +1,4 @@
 import nltk
-
 from chatbot.core import Chatbot
 
 def main():

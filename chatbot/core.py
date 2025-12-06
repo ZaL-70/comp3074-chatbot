@@ -40,15 +40,16 @@ class Chatbot:
             "recipe_recall",
             "recipe_search",
             "recipe_filter_search",
-            "recipe_details"
+            "recipe_details",
+            "clarification_intent"
         }
         self.AGREE_TERMS = {
             "yes", "yep", "yeah", "yup", "sure", "absolutely", "of course",
-            "definitely", "ok", "okay", "sure thing", "please do",
+            "definitely", "ok", "okay", "sure thing", "sure", "please do",
             "go ahead", "sounds good", "why not", "alright", "do it"
         }
         self.DISAGREE_TERMS = {
-            "no", "nope", "nah", "not really", "don't", "do not",
+            "no", "nope", "nah", "not really", "dont", "do not",
             "negative", "no thanks", "no thank you", "stop", "cancel",
             "please don't", "rather not", "not now", "leave it"
         }
@@ -78,17 +79,19 @@ class Chatbot:
         # ---- Predict intent ----
         intent = self.intent_model.predict(user_input)
         # Debug
-        # print("intent: ", intent)
+        print("intent: ", intent)
 
         # ---- Reset states when topic switches ----
         # For recipe states
-        if self.recipes_handler.state != RecipeState.DEFAULT and intent not in self.RECIPE_INTENTS:
+        if self.recipes_handler.state != RecipeState.DEFAULT and intent not in self.RECIPE_INTENTS and intent != "UNKNOWN":
             self.recipes_handler.state = RecipeState.DEFAULT
             self.recipes_handler.active_recipe = None
             self.recipes_handler.search_matches = []
             self.recipes_handler.preferred_recipe = None
             self.pending_intent = None
             self.nlg_context = {"just_mentioned": False, "recipe_name": None}
+
+        print("recipe state: ", self.recipes_handler.state)
 
         # For general user states
         if self.user_state == UserState.SELF_NAME_ASSIGNING and intent not in {"UNKNOWN", "ask_user_name"}:
@@ -107,9 +110,9 @@ class Chatbot:
                 return "No worries. Is there anything else I can assist with"
             else:
                 self.recipes_handler.state = RecipeState.DEFAULT
-        # Only run in non-recipe-search intent (preserve chronological transaction order)
         if self.recipes_handler.state == RecipeState.RECIPE_CONFIRMING and intent != "recipe_filter_search":
             if user_input.lower().strip() in self.AGREE_TERMS and len(self.recipes_handler.search_matches) > 1:
+                self.pending_intent = "recipe_steps"
                 return "Great! Which one do you want the steps for?"
             elif user_input.lower().strip() in self.DISAGREE_TERMS:
                 self.recipes_handler.state = RecipeState.DEFAULT
@@ -125,17 +128,17 @@ class Chatbot:
                 if self.pending_intent == "recipe_steps":
                     self.pending_intent = None
                     return self.recipes_handler.start_recipe_steps(recipe_name)
-                # Else default to description
-                recipe, err = self.recipes_handler.resolve_recipe(recipe_name)
-                if err:
-                    return err
-                self.pending_intent = None
-                return self.NLG.generate_recipe_description(recipe_name, "overview", context=self.nlg_context)
+                if self.pending_intent == "recipe_details":
+                    recipe, err = self.recipes_handler.resolve_recipe(recipe_name)
+                    if err:
+                        return err
+                    self.pending_intent = None
+                    return self.NLG.generate_recipe_description(recipe_name, "overview", context=self.nlg_context)
         if self.recipes_handler.state == RecipeState.STEPS_FINISH:
-            if user_input.lower().strip() in self.AGREE_TERMS and len(self.recipes_handler.search_matches) == 1:
-                return self.recipes_handler.save_recipe(self.recipes_handler.search_matches[0]) # Add behaviour
+            self.recipes_handler.state = RecipeState.DEFAULT
+            if user_input.lower().strip() in self.AGREE_TERMS and self.recipes_handler.preferred_recipe is not None:
+                return self.recipes_handler.save_recipe(self.recipes_handler.preferred_recipe)
             if user_input.lower().strip() in self.DISAGREE_TERMS:
-                self.recipes_handler.state = RecipeState.DEFAULT
                 return "No worries. Is there anything else I can assist with"
 
         # User state specific situations
