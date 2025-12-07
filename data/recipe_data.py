@@ -40,7 +40,7 @@ RECIPES = {
     },
 
     "vegetable stir fry": {
-        "ingredients": ["broccoli", "carrots", "peppers", "soy sauce", "garlic", "ginger", "noodles"],
+        "ingredients": ["noodles", "soy sauce", "broccoli", "carrots", "peppers", "garlic", "ginger"],
         "diet": ["vegetarian", "vegan"],
         "steps": [
             "Boil noodles until just tender, then drain.",

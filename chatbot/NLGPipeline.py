@@ -66,7 +66,13 @@ class NLGPipeline:
     # - Default case - exact matches otherwise assume no precise matches were found
     @staticmethod
     def aggregate_recipe_list(matches, match_type):
-        recipe_list = ', '.join(matches[:-1]) + ', and ' + matches[-1]
+        if len(matches) > 3:
+            sampled = random.sample(matches, 3)
+        else:
+            sampled = matches
+
+        recipe_list = ', '.join(sampled[:-1]) + ', and ' + sampled[-1] if len(sampled) > 1 else sampled[0]
+
         if len(matches) == 1:
             if match_type == "exact":
                 return f"I found the perfect match: {matches[0]}"

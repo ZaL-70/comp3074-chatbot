@@ -57,6 +57,11 @@ class Chatbot:
     # Choose or create template with response to return to user whilst keeping
     # track of & updating context, user states & possible pending intents
     def respond(self, user_input: str):
+        # ---- Predict intent ----
+        intent = self.intent_model.predict(user_input)
+        # Debug
+        print("intent: ", intent)
+
         # ---- Respond to user_name assignment prompt if applicable ----
         name = self.identity_manager.extract_name(user_input)
         if name == "has_number":
@@ -71,16 +76,6 @@ class Chatbot:
             self.user_state = UserState.DEFAULT
             return f"Nice to meet you, {self.identity_manager.user_name}!"
 
-        # ---- Respond to QA question early if applicable ----
-        answer = self.qa_module.get_answer(user_input)
-        if answer != "no_answer":
-            return answer
-
-        # ---- Predict intent ----
-        intent = self.intent_model.predict(user_input)
-        # Debug
-        print("intent: ", intent)
-
         # ---- Reset states when topic switches ----
         # For recipe states
         if self.recipes_handler.state != RecipeState.DEFAULT and intent not in self.RECIPE_INTENTS and intent != "UNKNOWN":
@@ -91,6 +86,7 @@ class Chatbot:
             self.pending_intent = None
             self.nlg_context = {"just_mentioned": False, "recipe_name": None}
 
+        # Debug
         print("recipe state: ", self.recipes_handler.state)
 
         # For general user states
@@ -237,5 +233,11 @@ class Chatbot:
             return random.choice(INTENT_RESPONSES["capabilities"])
         if intent == "small_talk":
             return self.smalltalk_module.get_response(user_input)
+
+        # ---- Respond to QA if no intent matched ----
+        answer = self.qa_module.get_answer(user_input)
+        if answer != "no_answer" and intent == "UNKNOWN":
+            return answer
+
         if intent == "UNKNOWN":
             return random.choice(INTENT_RESPONSES["UNKNOWN"])

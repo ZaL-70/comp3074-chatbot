@@ -20,12 +20,10 @@ class QAModule:
     # Find the answer best matching the question (using similarity (search engine) logic) (Lab 1)
     def get_answer(self, query: str):
         query_processed = self.preprocess(query)
-        best_idx, best_score = self.tfidf_matcher.find_best_match(query_processed, self.question_vectors, 0.65)
+        best_idx, best_score = self.tfidf_matcher.find_best_match(query_processed, self.question_vectors, 0.5)
 
-        if best_idx is None or best_score <= 0.2:
+        if best_idx is None:
             return "no_answer"
-        if 0.2 < best_score < 0.6:
-            return  "You're asking a question right, can you be more specific?"
 
         return self.answers[best_idx]
 

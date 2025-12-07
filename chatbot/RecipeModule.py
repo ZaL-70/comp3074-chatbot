@@ -103,7 +103,7 @@ class RecipeModule:
         self.step_index = 0
         first_step = self.recipes[self.active_recipe]['steps'][0]
         return (f"Let's make {self.active_recipe}! "
-                f"Step 1: {first_step} (type 'next' to continue)")
+                f"First step: {first_step} (type 'next' to continue)")
 
     # Moves recipe steps forward
     def next_step(self):
@@ -131,7 +131,6 @@ class RecipeModule:
             recipe_done = self.active_recipe
             self.state = RecipeState.STEPS_FINISH
             self.active_recipe = None # Reset after finishing steps
-            # Contextual marker
             return (f"You're done! Enjoy your {recipe_done}!"
                     f"\nIf you want I can save this recipe, would you like me to save it?")
 
