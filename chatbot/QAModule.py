@@ -41,7 +41,7 @@ class QAModule:
         else:
             return wordnet.NOUN
 
-    # Lemmatising helper
+    # Lemmatising helper to convert tokens to lemma form
     @staticmethod
     def preprocess(query: str) -> str:
         lemmatizer = WordNetLemmatizer()

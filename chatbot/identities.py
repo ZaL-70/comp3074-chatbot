@@ -6,6 +6,7 @@ names preceding introductory words to learn the users name"""
 class IdentityManager:
     _instance = None
 
+    # Ensure singleton pattern
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
@@ -15,26 +16,17 @@ class IdentityManager:
     def __init__(self):
         if self._initialized:
             return
-        # Keywords that often precede a name
+
         self.user_name = None
+
+        # Keywords that often precede a name
         self.intro_keywords = [
             "name is", "names", "call me", "i'm", "im", "i am", "this is", "its", "it's"
         ]
         self._initialized = True
 
-    def contains_intro_phrase(self, text_lower):
-        tokens = text_lower.split()
-
-        for phrase in self.intro_keywords:
-            phrase_tokens = phrase.split()
-            # sliding window over tokens
-            for i in range(len(tokens) - len(phrase_tokens) + 1):
-                if tokens[i:i + len(phrase_tokens)] == phrase_tokens:
-                    return phrase
-
-        return None
-
-    # Lab 0 - use text processing with pos tags inspired
+    # Function to extract a name from a text with introductory intent
+    # (Lab 0 inspired - use text processing & POS tags)
     def extract_name(self, text: str):
         text_lower = text.lower()
 
@@ -43,7 +35,7 @@ class IdentityManager:
         if not phrase:
             return None
 
-        # Tokenize & pos tag sentence
+        # Tokenize & POS tag sentence
         tokens = word_tokenize(text)
         tagged = pos_tag(tokens)
 
@@ -73,6 +65,20 @@ class IdentityManager:
 
         return "invalid"
 
+    # Helper to check sentence contains introductory terms
+    def contains_intro_phrase(self, text):
+        tokens = text.split()
+
+        for phrase in self.intro_keywords:
+            phrase_tokens = phrase.split()
+            # sliding window over tokens
+            for i in range(len(tokens) - len(phrase_tokens) + 1):
+                if tokens[i:i + len(phrase_tokens)] == phrase_tokens:
+                    return phrase
+
+        return None
+
+    # List of terms used by validation function - looks_like_name
     ANONYMOUS_RESPONSES = {
         "dont", "do", "not", "know", "i dont know", "idk",
         "no", "maybe", "later", "nothing", "none", "no idea",
@@ -80,8 +86,7 @@ class IdentityManager:
         "you", "choose", "your", "choice", "up", "to",
         "not sure", "unsure"
     }
-    # Helper to check "quick, single response" inputs follow
-    # naming conventions or imply anonymity
+    # Helper to check "quick, single response" inputs follow naming conventions or imply anonymity
     def looks_like_name(self, text: str):
         # Long phrases are not names
         words = text.strip().lower().split()

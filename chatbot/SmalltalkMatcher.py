@@ -15,7 +15,7 @@ class SmalltalkMatcher(TextMatcher):
         # Data required for small talk responses
         self.responses = SMALL_TALK_RESPONSES
 
-    # Give relevant response for the type of small talk (using similarity (search engine) logic) (Lab 1)
+    # Give relevant response for the type of small talk (using similarity (search engine) logic - Lab 1)
     def get_response(self, query: str):
         category = self.predict_category(query, threshold=0.7)
 

@@ -1,7 +1,6 @@
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import SGDClassifier
-from sklearn.model_selection import cross_val_score, StratifiedKFold
 from sklearn.pipeline import Pipeline
 from chatbot.RecipeModule import RecipeModule
 
@@ -12,12 +11,8 @@ class IntentClassifier:
         self.recipe_handler = RecipeModule()
         self.model = Pipeline([
             ('tfidf', TfidfVectorizer(analyzer='char_wb', ngram_range=(2,5))),
-            ('clf', SGDClassifier(loss='log_loss', alpha=0.0005))
+            ('clf', SGDClassifier(loss='log_loss', class_weight="balanced", alpha=0.0005))
         ])
-
-        # Evaluation Debug
-        # cv = StratifiedKFold(n_splits=8, shuffle=True, random_state=42)
-        # self.scores = cross_val_score(self.model, df["text"], df["intent"], cv=cv)
 
         self.model.fit(df['text'], df['intent'])
 
@@ -47,10 +42,8 @@ class IntentClassifier:
         # Otherwise default to classification model
         probs = self.model.predict_proba([user_input])[0]
         max_prob = max(probs)
-        # Evaluation Debug
+        # Debug
         # print("Intent Probability:", max_prob)
-        # print("Accuracy scores:", self.scores)
-        # print("Mean accuracy:", self.scores.mean())
         # Use a confidence level to ignore potential vague inputs
         if max_prob < 0.5:
             return "UNKNOWN"

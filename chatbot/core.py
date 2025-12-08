@@ -19,14 +19,17 @@ class UserState(Enum):
  so it can respond to queries accordingly"""
 class Chatbot:
     def __init__(self):
+        # QA & Intent Datasets
         self.qa_df = pd.read_csv("data/cooking-qa.csv")
         self.intent_df = pd.read_csv("data/intent-training.csv")
+        # Task Controllers
         self.intent_model = IntentClassifier(self.intent_df)
         self.qa_module = QAModule(self.qa_df)
         self.identity_manager = IdentityManager()
         self.smalltalk_module = SmalltalkMatcher(self.intent_df)
         self.recipes_handler = RecipeModule()
         self.NLG = NLGPipeline()
+        # Variables
         self.nlg_context = {
             "just_mentioned": False,
             "recipe_name": None
@@ -34,6 +37,7 @@ class Chatbot:
         self.user_state = UserState.DEFAULT
         self.pending_intent = None
         self.pending_recipe = None
+        # Data
         self.RECIPE_INTENTS = {
             "recipe_steps",
             "recipe_save",
@@ -55,26 +59,27 @@ class Chatbot:
         }
 
     # Choose or create template with response to return to user whilst keeping
-    # track of & updating context, user states & possible pending intents
+    # track of & updating: context, user states & potential pending intents
     def respond(self, user_input: str):
         # ---- Predict intent ----
         intent = self.intent_model.predict(user_input)
         # Debug
-        print("intent: ", intent)
+        # print("intent: ", intent)
 
         # ---- Respond to user_name assignment prompt if applicable ----
         name = self.identity_manager.extract_name(user_input)
-        if name == "has_number":
-            self.identity_manager.user_name = None
-            self.user_state = UserState.SELF_NAME_ASSIGNING
-            return "Names shouldn't contain numbers. What should I call you?"
-        if name == "invalid":
-            self.identity_manager.user_name = None
-            self.user_state = UserState.SELF_NAME_ASSIGNING
-            return "That doesn't look like a name. What should I call you?"
-        if name:
-            self.user_state = UserState.DEFAULT
-            return f"Nice to meet you, {self.identity_manager.user_name}!"
+        if intent == "UNKNOWN":
+            if name == "has_number":
+                self.identity_manager.user_name = None
+                self.user_state = UserState.SELF_NAME_ASSIGNING
+                return "Names shouldn't contain numbers. What should I call you?"
+            if name == "invalid":
+                self.identity_manager.user_name = None
+                self.user_state = UserState.SELF_NAME_ASSIGNING
+                return "That doesn't look like a name. What should I call you?"
+            if name:
+                self.user_state = UserState.DEFAULT
+                return f"Nice to meet you, {self.identity_manager.user_name}!"
 
         # ---- Reset states when topic switches ----
         # For recipe states
@@ -87,14 +92,14 @@ class Chatbot:
             self.nlg_context = {"just_mentioned": False, "recipe_name": None}
 
         # Debug
-        print("recipe state: ", self.recipes_handler.state)
+        # print("recipe state: ", self.recipes_handler.state)
 
         # For general user states
         if self.user_state == UserState.SELF_NAME_ASSIGNING and intent not in {"UNKNOWN", "ask_user_name"}:
             self.user_state = UserState.DEFAULT
 
-        # ---- Respond to state specific situations when applicable ----
-        # Recipe state situations
+        # ---- Handle state specific tasks if applicable ----
+        # Recipe state specific situations
         if self.recipes_handler.active_recipe and (
                 user_input.lower() == "next" or "continue" in user_input.lower()):
             return self.recipes_handler.next_step()
@@ -169,7 +174,7 @@ class Chatbot:
             else:   # Invalid, ask again
                 return "That doesn't look like a name. What should I call you?"
 
-        # ---- Respond to certain intents with a relevant response ----
+        # ---- Handle different intents with a relevant response & according behaviour ----
         if intent == "clarification_intent":
             recipe_name = self.recipes_handler.extract_recipe_name(user_input)
             recipe, err = self.recipes_handler.resolve_recipe(recipe_name)
@@ -234,10 +239,10 @@ class Chatbot:
         if intent == "small_talk":
             return self.smalltalk_module.get_response(user_input)
 
-        # ---- Respond to QA if no intent matched ----
+        # ---- Respond to QA if no intent matched or state specific behaviour is possible ----
         answer = self.qa_module.get_answer(user_input)
         if answer != "no_answer" and intent == "UNKNOWN":
             return answer
 
-        if intent == "UNKNOWN":
-            return random.choice(INTENT_RESPONSES["UNKNOWN"])
+        # ---- Standard completely unknown user intent response ----
+        return random.choice(INTENT_RESPONSES["UNKNOWN"])

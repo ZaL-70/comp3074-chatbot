@@ -7,10 +7,8 @@ class TextMatcher:
         self.labels = None
         self.vectors = None
         self.tfidf_matcher = TfIdfMatcher(use_stopwords=use_stopwords, ngram_min=ngram_min, ngram_max=ngram_max, analyzer=analyzer)
-
         # Anticipated queries
         self.training_data = training_data
-
         # Vectorise & label training data
         self.train()
 
