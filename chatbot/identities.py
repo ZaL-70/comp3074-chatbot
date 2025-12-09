@@ -83,7 +83,7 @@ class IdentityManager:
         "dont", "do", "not", "know", "i dont know", "idk",
         "no", "maybe", "later", "nothing", "none", "no idea",
         "whatever", "anything", "something", "meh", "fine",
-        "you", "choose", "your", "choice", "up", "to",
+        "choose", "your", "choice", "up", "to",
         "not sure", "unsure"
     }
     # Helper to check "quick, single response" inputs follow naming conventions or imply anonymity

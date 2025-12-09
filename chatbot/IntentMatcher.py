@@ -40,8 +40,7 @@ class IntentClassifier:
         # Otherwise default to classification model
         probs = self.model.predict_proba([user_input])[0]
         max_prob = max(probs)
-
         # Use a confidence level to ignore potential vague inputs
-        if max_prob < 0.5:
+        if max_prob < 0.35:
             return "UNKNOWN"
         return self.model.predict([user_input])[0]
