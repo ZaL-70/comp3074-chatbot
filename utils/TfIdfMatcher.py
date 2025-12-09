@@ -34,8 +34,6 @@ class TfIdfMatcher:
         # Get the top match
         best_idx = np.argmax(sims)
         best_score = sims[best_idx]
-        # Debug
-        # print("similarity score: ", best_score)
 
         if best_score < threshold:
             return None, 0

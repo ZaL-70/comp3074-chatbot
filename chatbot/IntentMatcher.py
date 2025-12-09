@@ -25,8 +25,6 @@ class IntentClassifier:
         # Clarification rule - Matches ambiguous recipe input like "pancakes"
         if len(user_input.split()) < 4:
             recipe_name = self.recipe_handler.extract_recipe_name(user_input)
-            # Debug
-            # print("Extracted recipe name (rule-based):", recipe_name)
             if recipe_name not in ["UNKNOWN_RECIPE", "NO_TARGET_REF"]:
                 return "clarification_intent"
 
@@ -42,8 +40,7 @@ class IntentClassifier:
         # Otherwise default to classification model
         probs = self.model.predict_proba([user_input])[0]
         max_prob = max(probs)
-        # Debug
-        # print("Intent Probability:", max_prob)
+
         # Use a confidence level to ignore potential vague inputs
         if max_prob < 0.5:
             return "UNKNOWN"

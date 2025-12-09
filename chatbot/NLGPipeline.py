@@ -63,7 +63,7 @@ class NLGPipeline:
         return aggregated
 
     # Return relevant template based on search query results
-    # - Default case - exact matches otherwise assume no precise matches were found
+    # - Default case: exact matches otherwise assume no precise matches were found
     @staticmethod
     def aggregate_recipe_list(matches, match_type):
         if len(matches) > 3:

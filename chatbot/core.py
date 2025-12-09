@@ -22,6 +22,7 @@ class Chatbot:
         # QA & Intent Datasets
         self.qa_df = pd.read_csv("data/cooking-qa.csv")
         self.intent_df = pd.read_csv("data/intent-training.csv")
+
         # Task Controllers
         self.intent_model = IntentClassifier(self.intent_df)
         self.qa_module = QAModule(self.qa_df)
@@ -29,6 +30,7 @@ class Chatbot:
         self.smalltalk_module = SmalltalkMatcher(self.intent_df)
         self.recipes_handler = RecipeModule()
         self.NLG = NLGPipeline()
+
         # Variables
         self.nlg_context = {
             "just_mentioned": False,
@@ -37,15 +39,12 @@ class Chatbot:
         self.user_state = UserState.DEFAULT
         self.pending_intent = None
         self.pending_recipe = None
+
         # Data
         self.RECIPE_INTENTS = {
-            "recipe_steps",
-            "recipe_save",
-            "recipe_recall",
-            "recipe_search",
-            "recipe_filter_search",
-            "recipe_details",
-            "clarification_intent"
+            "recipe_steps", "recipe_save", "recipe_recall",
+            "recipe_search", "recipe_filter_search",
+            "recipe_details", "clarification_intent"
         }
         self.AGREE_TERMS = {
             "yes", "yep", "yeah", "yup", "sure", "absolutely", "of course",
@@ -63,8 +62,6 @@ class Chatbot:
     def respond(self, user_input: str):
         # ---- Predict intent ----
         intent = self.intent_model.predict(user_input)
-        # Debug
-        # print("intent: ", intent)
 
         # ---- Respond to user_name assignment prompt if applicable ----
         name = self.identity_manager.extract_name(user_input)
@@ -90,9 +87,6 @@ class Chatbot:
             self.recipes_handler.preferred_recipe = None
             self.pending_intent = None
             self.nlg_context = {"just_mentioned": False, "recipe_name": None}
-
-        # Debug
-        # print("recipe state: ", self.recipes_handler.state)
 
         # For general user states
         if self.user_state == UserState.SELF_NAME_ASSIGNING and intent not in {"UNKNOWN", "ask_user_name"}:

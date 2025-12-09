@@ -70,7 +70,7 @@ plt.ylabel("True Label", fontsize=14)
 plt.tight_layout()
 plt.show()
 
-# ---- CUQ Results ----
+# ---- CUQ Evaluation Results ----
 # CUQ findings 16 questions x 5 participants
 data = {
     'Q1':  [4,3,4,3,5],
@@ -96,7 +96,7 @@ df = pd.DataFrame(data)
 # Reverse-score even-numbered questions (assuming 1-5 Likert scale)
 even_questions = [f'Q{i}' for i in range(2, 17, 2)]
 for q in even_questions:
-    df[q] = 6 - df[q]  # Reverse: 1→5, 2→4, 3→3, 4→2, 5→1
+    df[q] = 6 - df[q]  # Reverse: 1 -> 5, 2 -> 4, 3 -> 3, 4 -> 2, 5 -> 1
 
 # Convert DataFrame to long format
 df_long = df.melt(var_name='Question', value_name='Response')

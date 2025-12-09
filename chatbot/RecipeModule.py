@@ -18,12 +18,17 @@ class RecipeModule:
     def __init__(self):
         # Data
         self.recipes = RECIPES
+
         # Task Controllers
         self.NLG = NLGPipeline()
         self.stemmer = PorterStemmer()
         self.preprocess_recipes()
         self.recipe_training = {name: [name] for name in self.recipes.keys()}
-        self.recipe_matcher = TextMatcher(self.recipe_training, use_stopwords=False, ngram_min=2, ngram_max=5, analyzer="char")
+        self.recipe_matcher = TextMatcher(
+            self.recipe_training, use_stopwords=False,
+            ngram_min=2, ngram_max=5, analyzer="char"
+        )
+
         # Variables
         self.diet_keywords = KNOWN_DIETS.union(self.extract_all_diets())
         self.user_saved = []
