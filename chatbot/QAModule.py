@@ -12,7 +12,10 @@ class QAModule:
         # Extract questions & answers from QA csv
         self.questions = [self.preprocess(q) for q in qa_df["Question"].astype(str).tolist()]
         self.answers = qa_df["Answer"].astype(str).tolist()
-        self.tfidf_matcher = TfIdfMatcher(use_stopwords=True, analyzer="word")
+        self.tfidf_matcher = TfIdfMatcher(
+            ngram_min=1, ngram_max=1,
+            use_stopwords=True, analyzer="word"
+        )
 
         # Vectorise question documents
         self.question_vectors = self.tfidf_matcher.vectorise(self.questions)

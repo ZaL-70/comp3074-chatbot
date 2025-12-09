@@ -161,16 +161,16 @@ class Chatbot:
         if self.user_state == UserState.SELF_NAME_ASSIGNING and intent == "UNKNOWN":
             name_check = self.identity_manager.looks_like_name(user_input)
             # Error checking with guided recovery
-            if name_check == "valid":
-                self.identity_manager.user_name = user_input.title()
-                self.user_state = UserState.DEFAULT
-                return f"Nice to meet you, {self.identity_manager.user_name}!"
-            elif name_check == "has_number":    # Has numbers, ask again
+            if name_check == "has_number":    # Has numbers, ask again
                 return "Names shouldn't contain numbers. What should I call you?"
-            elif name_check == "anonymous":
+            elif name_check == "anonymous": # Anonymous, reset state
                 self.identity_manager.user_name = "My Friend"
                 self.user_state = UserState.DEFAULT
                 return "Okay, I'll just call you 'My Friend' for now."
+            elif name_check == "valid":
+                self.identity_manager.user_name = user_input.title()
+                self.user_state = UserState.DEFAULT
+                return f"Nice to meet you, {self.identity_manager.user_name}!"
             else:   # Invalid, ask again
                 return "That doesn't look like a name. What should I call you?"
 
